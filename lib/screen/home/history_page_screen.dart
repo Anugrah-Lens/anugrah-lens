@@ -59,21 +59,23 @@ class _RiwayatPageScreenState extends State<RiwayatPageScreen> {
                     children: [
                       CardNameWidget(
                         onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MenuAngsuranScreen(),
-                              ));
+                          // Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //       builder: (context) => MenuAngsuranScreen(
+                          //         customersModel: 
+                          //       ),
+                          //     ));
                         },
                         name: 'Thiyara Al-Mawaddah',
                       ),
                       CardNameWidget(
                         onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MenuAngsuranScreen(),
-                              ));
+                          // Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //       builder: (context) => MenuAngsuranScreen(),
+                          //     ));
                         },
                         name: 'Jeremy Lewi Munthe',
                       ),

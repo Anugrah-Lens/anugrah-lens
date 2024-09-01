@@ -70,7 +70,7 @@ class _CardAnsuranWidgetState extends State<CardAnsuranWidget> {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Container(
-          height: 124,
+          height: 180,
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
@@ -88,21 +88,21 @@ class _CardAnsuranWidgetState extends State<CardAnsuranWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Padding(
-                //   padding: const EdgeInsets.all(8.0),
-                //   child: Align(
-                //     alignment: Alignment.topRight,
-                //     child: Container(
-                //       padding: const EdgeInsets.all(8.0),
-                //       decoration: widget.decoration,
-                //       child: Text(
-                //         widget.label,
-                //         style: FontFamily.caption
-                //             .copyWith(color: ColorStyle.whiteColors),
-                //       ),
-                //     ),
-                //   ),
-                // ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: widget.decoration,
+                      child: Text(
+                        widget.label,
+                        style: FontFamily.caption
+                            .copyWith(color: ColorStyle.whiteColors),
+                      ),
+                    ),
+                  ),
+                ),
                 Text(
                   widget.glassesName,
                   style: FontFamily.title

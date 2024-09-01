@@ -1,3 +1,4 @@
+import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/angusuran/table_angsuran.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
@@ -6,42 +7,24 @@ import 'package:anugrah_lens/widget/text_widget.dart';
 import 'package:flutter/material.dart';
 
 class DetailAngsuranSCreen extends StatefulWidget {
-  final String name;
-  final String address;
-  final int phone;
-  final String frameName;
-  final String lensType;
-  final String leftSize;
-  final String rightSize;
-  final String orderDate;
-  final String deliveryDate;
-  final int price;
-  final int deposit;
-  final String paymentMethod;
+  final Customer customer;
+  final List<Glass> glass;
+  final String idCustomer;
+  final String idGlass;
 
-  DetailAngsuranSCreen(
-      {Key? key,
-      required this.name,
-      required this.address,
-      required this.phone,
-      required this.frameName,
-      required this.lensType,
-      required this.leftSize,
-      required this.rightSize,
-      required this.orderDate,
-      required this.deliveryDate,
-      required this.price,
-      required this.deposit,
-      required this.paymentMethod})
-      : super(key: key);
+  DetailAngsuranSCreen({
+    Key? key,
+    required this.glass,
+    required this.idCustomer,
+    required this.idGlass,
+    required this.customer,
+  }) : super(key: key);
 
   @override
   State<DetailAngsuranSCreen> createState() => _DetailAngsuranSCreenState();
 }
 
 class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
-  @override
-  // bool isPaymentConfirmed = false;
   bool _isExpanded = false;
 
   void _toggleExpansion() {
@@ -52,8 +35,8 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
 
   @override
   Widget build(BuildContext context) {
-    final remainingPayment = int.parse(widget.price.toString()) -
-        int.parse(widget.deposit.toString());
+    final customer = widget.customer;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -76,7 +59,7 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                     Padding(
                       padding: EdgeInsets.all(2.0),
                       child: Text(
-                        widget.name,
+                        customer.name.toString(),
                         style: FontFamily.caption,
                       ),
                     ),
@@ -84,7 +67,7 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                     Padding(
                       padding: EdgeInsets.all(2.0),
                       child: Text(
-                        widget.address,
+                        customer.address.toString(),
                         style: FontFamily.caption,
                       ),
                     ),
@@ -92,19 +75,18 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                     Padding(
                       padding: EdgeInsets.all(2.0),
                       child: Text(
-                        widget.phone.toString(),
+                        customer.phone.toString(),
                         style: FontFamily.caption,
                       ),
                     ),
-                    if (_isExpanded) ...[
-                      const SizedBox(
-                        height: 20.0,
-                      ),
+                    if (_isExpanded &&
+                        customer.glasses?.isNotEmpty == true) ...[
+                      const SizedBox(height: 20.0),
                       const TitleTextWIdget(name: 'Nama Gagang(Frame)'),
                       Padding(
                         padding: EdgeInsets.all(2.0),
                         child: Text(
-                          widget.frameName,
+                          customer.glasses!.first.frame ?? 'Tidak tersedia',
                           style: FontFamily.caption,
                         ),
                       ),
@@ -112,7 +94,7 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                       Padding(
                         padding: EdgeInsets.all(2.0),
                         child: Text(
-                          widget.lensType,
+                          customer.glasses!.first.lensType ?? 'Tidak tersedia',
                           style: FontFamily.caption,
                         ),
                       ),
@@ -120,35 +102,41 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Text('Left : ${widget.leftSize}',
-                              style: FontFamily.caption),
-                          Text('Right : ${widget.rightSize}',
-                              style: FontFamily.caption),
+                          Text(
+                            'Left : ${customer.glasses!.first.left ?? 'Tidak tersedia'}',
+                            style: FontFamily.caption,
+                          ),
+                          Text(
+                            'Right : ${customer.glasses!.first.right ?? 'Tidak tersedia'}',
+                            style: FontFamily.caption,
+                          ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 20.0,
-                      ),
+                      const SizedBox(height: 20.0),
                       const TitleTextWIdget(name: 'Tanggal Pemesanan'),
                       Padding(
                         padding: EdgeInsets.all(2.0),
-                        child:
-                            Text(widget.orderDate, style: FontFamily.caption),
+                        child: Text(
+                          customer.glasses!.first.orderDate ?? 'Tidak tersedia',
+                          style: FontFamily.caption,
+                        ),
                       ),
-                      const SizedBox(
-                        height: 20.0,
-                      ),
+                      const SizedBox(height: 20.0),
                       const TitleTextWIdget(name: 'Tanggal Pengantaran'),
                       Padding(
                         padding: EdgeInsets.all(2.0),
-                        child: Text(widget.deliveryDate,
-                            style: FontFamily.caption),
+                        child: Text(
+                          customer.glasses!.first.deliveryDate ??
+                              'Tidak tersedia',
+                          style: FontFamily.caption,
+                        ),
                       ),
                       const TitleTextWIdget(name: 'Harga'),
                       Padding(
                         padding: EdgeInsets.all(2.0),
                         child: Text(
-                          widget.price.toString(),
+                          customer.glasses!.first.price?.toString() ??
+                              'Tidak tersedia',
                           style: FontFamily.caption,
                         ),
                       ),
@@ -156,16 +144,18 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                       Padding(
                         padding: EdgeInsets.all(2.0),
                         child: Text(
-                          widget.deposit.toString(),
+                          customer.glasses!.first.deposit?.toString() ??
+                              'Tidak tersedia',
                           style: FontFamily.caption,
                         ),
                       ),
                       Padding(
                         padding: EdgeInsets.all(2.0),
                         child: Text(
-                            'Sisa Pembayaran: $remainingPayment',
-                            style: FontFamily.caption
-                                .copyWith(color: ColorStyle.errorColor)),
+                          'Sisa Pembayaran: ${customer.glasses!.first.price! - customer.glasses!.first.deposit!}',
+                          style: FontFamily.caption
+                              .copyWith(color: ColorStyle.errorColor),
+                        ),
                       ),
                     ],
                   ],
@@ -175,21 +165,20 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                   child: TextButton(
                     onPressed: _toggleExpansion,
                     child: Text(
-                        _isExpanded
-                            ? 'Lihat lebih sedikit'
-                            : 'Lihat selengkapnya',
-                        style: FontFamily.titleForm
-                            .copyWith(color: ColorStyle.secondaryColor)),
+                      _isExpanded
+                          ? 'Lihat lebih sedikit'
+                          : 'Lihat selengkapnya',
+                      style: FontFamily.titleForm
+                          .copyWith(color: ColorStyle.secondaryColor),
+                    ),
                   ),
                 ),
-                const SizedBox(
-                  height: 40.0,
-                ),
-                const Padding(
+                const SizedBox(height: 40.0),
+                Padding(
                   padding: EdgeInsets.all(2.0),
                   child: Text(
                     'Metode Pembayaran',
-                    style: FontFamily.title,
+                    style: FontFamily.title.copyWith(fontSize: 16),
                   ),
                 ),
                 Padding(
@@ -198,38 +187,39 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        widget.paymentMethod,
-                        style: FontFamily.caption,
+                        customer.glasses!.first.paymentMethod ??
+                            'Tidak tersedia',
+                        style: FontFamily.titleForm.copyWith(
+                          color: ColorStyle.textColors,
+                        ),
                       ),
-                      const SizedBox(
-                        width: 8.0,
-                      ),
+                      const SizedBox(width: 8.0),
                       Text(
-                        /// kalau paymentMethod == 'Lunas' maka warna text menjadi hijau
-                        widget.paymentMethod == 'Lunas'
+                        customer.glasses!.first.paymentStatus == 'Paid'
                             ? 'Lunas'
                             : 'Belum Lunas',
                         style: FontFamily.titleForm.copyWith(
-                            color: widget.paymentMethod == 'Lunas'
-                                ? ColorStyle.successColor
-                                : ColorStyle.errorColor),
+                          color: customer.glasses!.first.paymentStatus == 'Paid'
+                              ? ColorStyle.successColor
+                              : ColorStyle.errorColor,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(
-                  height: 32.0,
-                ),
-                // buat apabila sudah lunas maka warna button menajadi disabled
+                const SizedBox(height: 32.0),
                 ElevatedButtonWidget(
                   color: ColorStyle.primaryColor,
                   text: 'Lihat Pembayaran',
                   onPressed: () {
-                    //navgate to TableAngsuran
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CreateTableAngsuran(),
+                        builder: (context) => CreateTableAngsuran(
+                          customer: customer,
+                          glasses: widget.glass,
+                          glassId: widget.idGlass,
+                        ),
                       ),
                     );
                   },
@@ -243,73 +233,74 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
   }
 }
 
-// Widget AlertDialog terpisah, ditempatkan di bawah
-class PaymentConfirmationDialog extends StatelessWidget {
-  final VoidCallback onConfirmed;
 
-  PaymentConfirmationDialog({required this.onConfirmed});
+// // Widget AlertDialog terpisah, ditempatkan di bawah
+// class PaymentConfirmationDialog extends StatelessWidget {
+//   final VoidCallback onConfirmed;
 
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      title: const Center(
-        child: Text('Konfirmasi Pembayaran', style: FontFamily.title),
-      ),
-      content: const Text(
-        textAlign: TextAlign.center,
-        'Apakah pembayaran kaca mata telah dilunasi secara cash?',
-        style: FontFamily.caption,
-      ),
-      actions: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Menutup dialog
-              },
-              child: const Text('Belum'),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.black, // Warna teks
-                side: const BorderSide(
-                  color: Colors.black, // Warna border
-                  width: 1.5, // Lebar border
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                onConfirmed(); // Memanggil callback ketika tombol "Lunas" ditekan
-                Navigator.of(context).pop(); // Menutup dialog
-              },
-              style: TextButton.styleFrom(
-                backgroundColor:
-                    ColorStyle.primaryColor, // Warna latar belakang
-                foregroundColor: ColorStyle.whiteColors, // Warna teks
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              ),
-              child: Text('Lunas',
-                  style: FontFamily.caption
-                      .copyWith(color: ColorStyle.whiteColors)),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
+//   PaymentConfirmationDialog({required this.onConfirmed});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return AlertDialog(
+//       shape: RoundedRectangleBorder(
+//         borderRadius: BorderRadius.circular(12.0),
+//       ),
+//       title: const Center(
+//         child: Text('Konfirmasi Pembayaran', style: FontFamily.title),
+//       ),
+//       content: const Text(
+//         textAlign: TextAlign.center,
+//         'Apakah pembayaran kaca mata telah dilunasi secara cash?',
+//         style: FontFamily.caption,
+//       ),
+//       actions: [
+//         Row(
+//           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//           children: [
+//             TextButton(
+//               onPressed: () {
+//                 Navigator.of(context).pop(); // Menutup dialog
+//               },
+//               child: const Text('Belum'),
+//               style: TextButton.styleFrom(
+//                 foregroundColor: Colors.black, // Warna teks
+//                 side: const BorderSide(
+//                   color: Colors.black, // Warna border
+//                   width: 1.5, // Lebar border
+//                 ),
+//                 shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(8),
+//                 ),
+//                 padding:
+//                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+//               ),
+//             ),
+//             TextButton(
+//               onPressed: () {
+//                 onConfirmed(); // Memanggil callback ketika tombol "Lunas" ditekan
+//                 Navigator.of(context).pop(); // Menutup dialog
+//               },
+//               style: TextButton.styleFrom(
+//                 backgroundColor:
+//                     ColorStyle.primaryColor, // Warna latar belakang
+//                 foregroundColor: ColorStyle.whiteColors, // Warna teks
+//                 shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(8),
+//                 ),
+//                 padding:
+//                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+//               ),
+//               child: Text('Lunas',
+//                   style: FontFamily.caption
+//                       .copyWith(color: ColorStyle.whiteColors)),
+//             ),
+//           ],
+//         ),
+//       ],
+//     );
+//   }
+// }
 
 // /// dialoh cancel /////
 

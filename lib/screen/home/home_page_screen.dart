@@ -1,5 +1,7 @@
+import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/angusuran/menu_angsuran.dart';
 import 'package:anugrah_lens/screen/form-screen/create_new_angsuran.dart';
+import 'package:anugrah_lens/services/customers_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/card.dart';
@@ -18,7 +20,9 @@ class BerandaPageScreen extends StatefulWidget {
 }
 
 class _BerandaPageScreenState extends State<BerandaPageScreen> {
+  final CostumersService _costumersService = CostumersService();
   final TextEditingController name = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,8 +66,8 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                       ),
                       Text(
                         'thiyaraali@gmail.com',
-                        style: FontFamily.caption.copyWith(
-                            color: ColorStyle.whiteColors),
+                        style: FontFamily.caption
+                            .copyWith(color: ColorStyle.whiteColors),
                       ),
                     ],
                   ),
@@ -108,63 +112,120 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
           ],
         ),
       ),
-      body: ListView(
-        children: [
-          Padding(
+      body: FutureBuilder<CustomersModel>(
+        future: _costumersService.fetchCustomers(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data?.customer == null) {
+            return Center(child: Text('Tidak ada pelanggan'));
+          }
+
+          // Mengambil daftar pelanggan
+          List<Customer> customers = snapshot.data!.customer!;
+          final CustomersModel customersModel = snapshot.data!;
+
+          return Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.all(2.0),
                   child: Text("Anugrah Lens", style: FontFamily.h3),
                 ),
                 const SizedBox(height: 10.0),
                 SearchDropdownField(
+                  onSelected: (String selectedName) {
+                    // Memastikan navigasi hanya terjadi jika nama dipilih dari dropdown
+                    Customer? selectedCustomer = customers
+                        .firstWhere((element) => element.name == selectedName);
+
+                    if (selectedCustomer != null) {
+                      // Select the first glass if it exists
+                      Glass? selectedGlass =
+                          selectedCustomer.glasses?.isNotEmpty == true
+                              ? selectedCustomer.glasses!.first
+                              : null;
+
+                      if (selectedGlass != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MenuAngsuranScreen(
+                              customersModel: selectedCustomer,
+                              idCustomer: selectedCustomer.id ?? '',
+                              idGlass: selectedGlass.id ?? '',
+                            ),
+                          ),
+                        );
+                      } else {
+                        // Handle the case where no glass is available
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                Text('No glass available for this customer'),
+                          ),
+                        );
+                      }
+                    }
+                  },
                   prefixIcons:
                       const Icon(Icons.search, color: ColorStyle.disableColor),
                   suffixIcons: null,
                   controller: name,
                   hintText: 'cari nama pelanggan',
-                  items: [
-                    'John Doe',
-                    'Jane Smith',
-                    'Alice Johnson',
-                    'Thiyara Al-Mawaddah'
-                  ],
+                  items: customers.map((e) => e.name ?? '').toList(),
                 ),
-                const SizedBox(height: 10.0),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Column(
-                    children: [
-                      CardNameWidget(
-                        onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MenuAngsuranScreen(),
-                              ));
-                        },
-                        name: 'Thiyara Al-Mawaddah',
-                      ),
-                      CardNameWidget(
-                        onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MenuAngsuranScreen(),
-                              ));
-                        },
-                        name: 'Jeremy Lewi Munthe',
-                      ),
-                    ],
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: customers.length,
+                    itemBuilder: (context, index) {
+                      final customer = customers[index];
+
+                      // Select the first glass if it exists
+                      Glass? selectedGlass =
+                          customer.glasses?.isNotEmpty == true
+                              ? customer.glasses!.first
+                              : null;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: CardNameWidget(
+                          onPressed: () {
+                            if (selectedGlass != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MenuAngsuranScreen(
+                                    customersModel: customer,
+                                    idCustomer: customer.id ?? '',
+                                    idGlass: selectedGlass.id ??
+                                        '', // Pass the selected glass ID
+                                  ),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'No glass available for this customer'),
+                                ),
+                              );
+                            }
+                          },
+                          name: customer.name ?? 'Nama tidak tersedia',
+                        ),
+                      );
+                    },
                   ),
-                ),
+                )
               ],
             ),
-          )
-        ],
+          );
+        },
       ),
       floatingActionButton: CustomFloatingActionButton(
         onPressed: () {

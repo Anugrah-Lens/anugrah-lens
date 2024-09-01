@@ -218,36 +218,26 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                 const SizedBox(height: 32.0),
                 ElevatedButtonWidget(
                   onPressed: () {
-                    //hapus tanda koma
-                    final int parsedPhone =
-                        int.parse(phone.text.replaceAll(',', ''));
-                    final int parsedPrice =
-                        int.parse(price.text.replaceAll(',', ''));
-                    final int parsedDeposit =
-                        int.parse(deposit.text.replaceAll(',', ''));
+                    // //hapus tanda koma
+                    // final int parsedPhone =
+                    //     int.parse(phone.text.replaceAll(',', ''));
+                    // final int parsedPrice =
+                    //     int.parse(price.text.replaceAll(',', ''));
+                    // final int parsedDeposit =
+                    //     int.parse(deposit.text.replaceAll(',', ''));
 
-                    final selectedPaymentMethod = _paymentStatus;
+                    // final selectedPaymentMethod = _paymentStatus;
 
-                    /// navigator ke halaman DetailAngsuranScreen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailAngsuranSCreen(
-                          name: name.text,
-                          phone: parsedPhone,
-                          address: address.text,
-                          frameName: frameName.text,
-                          lensType: lensType.text,
-                          leftSize: leftSize.text,
-                          rightSize: rightSize.text,
-                          price: parsedPrice,
-                          deposit: parsedDeposit,
-                          orderDate: orderDate.text,
-                          deliveryDate: deliveryDate.text,
-                          paymentMethod: selectedPaymentMethod,
-                        ),
-                      ),
-                    );
+                    // /// navigator ke halaman DetailAngsuranScreen
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => DetailAngsuranSCreen(
+                    //       customer: 
+                         
+                    //     ),
+                    //   ),
+                    // );
                   },
                   text: 'Simpan',
                 )

@@ -105,12 +105,16 @@ class SearchDropdownField extends StatefulWidget {
   final TextEditingController? controller;
   final Widget? suffixIcons;
   final Widget? prefixIcons;
+  final ValueChanged<String>? onChange;
+  final ValueChanged<String>? onSelected;
 
   const SearchDropdownField(
       {Key? key,
       required this.items,
       required this.hintText,
       this.controller,
+      this.onChange,
+      this.onSelected,
       this.prefixIcons,
       this.suffixIcons})
       : super(key: key);
@@ -150,9 +154,7 @@ class _SearchDropdownFieldState extends State<SearchDropdownField> {
               .contains(textEditingValue.text.toLowerCase());
         });
       },
-      onSelected: (String selection) {
-        _controller.text = selection;
-      },
+      onSelected: widget.onSelected,
       fieldViewBuilder: (BuildContext context,
           TextEditingController textEditingController,
           FocusNode focusNode,
@@ -160,6 +162,7 @@ class _SearchDropdownFieldState extends State<SearchDropdownField> {
         // Update the text editing controller if needed
         _controller = textEditingController;
         return TextField(
+          onChanged: widget.onChange,
           controller: textEditingController,
           focusNode: focusNode,
           decoration: InputDecoration(
@@ -271,6 +274,7 @@ class TextFieldColumnWiget extends StatefulWidget {
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
   final List<TextInputFormatter>? inputFormatters;
+
   const TextFieldColumnWiget({
     super.key,
     this.inputFormatters,
@@ -290,8 +294,10 @@ class _TextFieldColumnWigetState extends State<TextFieldColumnWiget> {
       width: double.infinity,
       child: TextField(
         inputFormatters: widget.inputFormatters,
-        controller: TextEditingController(text: widget.controller!.text),
-        onChanged: widget.onChanged,
+        controller: widget.controller,
+        onChanged: (value) {
+          widget.onChanged!(value); // Pastikan onChanged tidak menyebabkan controller direset
+        },
         decoration: InputDecoration(hintText: widget.hintText),
       ),
     );

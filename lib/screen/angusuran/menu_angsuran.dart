@@ -1,3 +1,4 @@
+import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/angusuran/angusran_screen.dart';
 import 'package:anugrah_lens/screen/angusuran/cash_screen.dart';
 import 'package:anugrah_lens/style/color_style.dart';
@@ -8,7 +9,16 @@ import 'package:flutter/material.dart';
 import 'selesai_screen.dart';
 
 class MenuAngsuranScreen extends StatefulWidget {
-  MenuAngsuranScreen({Key? key}) : super(key: key);
+  final Customer customersModel;
+  final String idCustomer;
+  final String idGlass;
+
+  MenuAngsuranScreen(
+      {Key? key,
+      required this.customersModel,
+      required this.idGlass,
+      required this.idCustomer})
+      : super(key: key);
 
   @override
   State<MenuAngsuranScreen> createState() => _MenuAngsuranScreenState();
@@ -138,10 +148,25 @@ class _MenuAngsuranScreenState extends State<MenuAngsuranScreen> {
             ),
           ]),
           isAngsuranActive
-              ? AngsuranScreen()
+              ? AngsuranScreen(
+                  idCustomer: widget.idCustomer,
+                  idGlass: widget.idGlass,
+                  glass: widget.customersModel.glasses!,
+                  //// masi salaah harusnya bukan first
+                  customer: widget.customersModel)
               : isCashActive
-                  ? CashScreen()
-                  : SelesaiScreen(),
+                  ? CashScreen(
+                      idCustomer: widget.idCustomer,
+                      idGlass: widget.idGlass,
+                      glass: widget.customersModel.glasses!,
+                      //// masi salaah harusnya bukan first
+                      customer: widget.customersModel)
+                  : SelesaiScreen(
+                      idCustomer: widget.idCustomer,
+                      idGlass: widget.idGlass,
+                      glass: widget.customersModel.glasses!,
+                      //// masi salaah harusnya bukan first
+                      customer: widget.customersModel),
         ],
       ),
       // floatingActionButton: CustomFloatingActionButton(

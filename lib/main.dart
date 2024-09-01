@@ -4,6 +4,8 @@ import 'package:anugrah_lens/screen/angusuran/table_angsuran.dart';
 import 'package:anugrah_lens/screen/form-screen/create_new_angsuran.dart';
 import 'package:anugrah_lens/screen/home/bottom_screen.dart';
 import 'package:anugrah_lens/screen/login/login_screen.dart';
+import 'package:anugrah_lens/screen/test.dart';
+import 'package:anugrah_lens/screen/testr.dart';
 import 'package:flutter/material.dart';
 
 void main() {
