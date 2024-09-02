@@ -7,10 +7,6 @@ class PaymentService {
   Future<Map<String, dynamic>> addPaymentDataAmount(
       int bayar, String glassId, String paidDate) async {
     try {
-      print('Mengirim permintaan ke: $baseUrl/add-installment/$glassId');
-      print('Dengan data: amount = $bayar');
-      print('Dengan data: paidDate = $paidDate');
-
       Response response = await _dio.post(
         '$baseUrl/add-installment/$glassId',
         data: {
@@ -52,8 +48,6 @@ class PaymentService {
 
   Future<String> updateInstallment(
       String installmentId, int amount, String paidDate) async {
-    print(
-        'updateInstallment called with installmentId: $installmentId, amount: $amount');
     try {
       final response =
           await _dio.put('$baseUrl/edit-installment/$installmentId', data: {

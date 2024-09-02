@@ -53,8 +53,9 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
         for (var installment in glass.installments!) {
           rows.add({
             'no': rows.length + 1,
-            'tanggal': DateFormat('dd MMMM yyyy')
-                .format(DateTime.parse(installment.paidDate!)),
+            'tanggal': DateFormat('dd MMMM yyyy').format(
+                DateTime.parse(installment.paidDate!)
+                    .add(const Duration(hours: 7))),
             'bayar': installment.amount.toString(),
             'jumlah': installment.total.toString(),
             'sisa': installment.remaining.toString(),
@@ -71,8 +72,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
   void _showAddRowDialog() {
     TextEditingController tanggalController = TextEditingController();
     TextEditingController bayarController = TextEditingController();
-    print(tanggalController.text);
-
+    // Datetime pickedDate =[]
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -95,10 +95,13 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2101),
                   );
+                  // print pickedDate
+                  print(pickedDate);
 
                   if (pickedDate != null) {
                     String formattedDate =
                         DateFormat('dd MMMM yyyy').format(pickedDate);
+                    print(formattedDate);
                     setState(() {
                       tanggalController.text = formattedDate;
                     });
@@ -128,7 +131,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
               onPressed: () async {
                 if (bayarController.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text(
                         'Nilai pembayaran tidak boleh kosong',
                         style: TextStyle(color: Colors.white),
@@ -144,7 +147,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
 
                 if (bayar <= 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text(
                         'Nilai pembayaran harus lebih besar dari 0',
                         style: TextStyle(color: Colors.white),
@@ -159,7 +162,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
 
                 if (glassId == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text(
                         'glassId is null',
                         style: TextStyle(color: Colors.white),
@@ -176,21 +179,18 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                     context: context,
                     barrierDismissible: false,
                     builder: (BuildContext context) {
-                      return Center(child: CircularProgressIndicator());
+                      return const Center(child: CircularProgressIndicator());
                     },
                   );
 
-                  // Parse the date from the controller text
+                  // Ambil tanggal dari pickedDate
                   DateTime selectedDate =
                       DateFormat('dd MMMM yyyy').parse(tanggalController.text);
-
-// Convert DateTime to ISO 8601 format
-                  String isoFormattedDate =
-                      selectedDate.toUtc().toIso8601String();
+                  String paidDate = selectedDate.toUtc().toIso8601String();
 
 // Mengirim data ke backend untuk menambahkan installment
                   Map<String, dynamic> paymentData = await _paymentService
-                      .addPaymentDataAmount(bayar, glassId, isoFormattedDate);
+                      .addPaymentDataAmount(bayar, glassId, paidDate);
 
                   if (paymentData['success']) {
                     // Segera setelah menambahkan, ambil data pelanggan dan update UI
@@ -205,26 +205,26 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                           ?.firstWhere((g) => g.id == widget.glassId);
                       if (glass != null) {
                         setState(() {
-                          rows =
-                              glass.installments?.asMap().entries.map((entry) {
-                                    int index = entry.key +
-                                        1; // +1 agar nomor mulai dari 1
-                                    var installment = entry.value;
-                                    final formattedDate =
-                                        DateFormat('dd MMMM yyyy').format(
-                                            DateTime.parse(
-                                                installment.paidDate ?? ''));
-                                    return {
-                                      'no': index.toString(),
-                                      'id': installment.id,
-                                      'tanggal': formattedDate,
-                                      'bayar': installment.amount.toString(),
-                                      'jumlah': installment.total.toString(),
-                                      'sisa': installment.remaining.toString(),
-                                      'isEditing': false,
-                                    };
-                                  }).toList() ??
-                                  [];
+                          rows = glass.installments
+                                  ?.asMap()
+                                  .entries
+                                  .map((entry) {
+                                int index =
+                                    entry.key + 1; // +1 agar nomor mulai dari 1
+                                var installment = entry.value;
+                                return {
+                                  'no': index.toString(),
+                                  'id': installment.id,
+                                  'tanggal': DateFormat('dd MMMM yyyy').format(
+                                      DateTime.parse(installment.paidDate!)
+                                          .add(const Duration(hours: 7))),
+                                  'bayar': installment.amount.toString(),
+                                  'jumlah': installment.total.toString(),
+                                  'sisa': installment.remaining.toString(),
+                                  'isEditing': false,
+                                };
+                              }).toList() ??
+                              [];
                         });
                       }
                     }
@@ -260,34 +260,14 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
     );
   }
 
-  void _saveRow(int index, installmentId) async {
-    // Validate row data
-    if (rows[index]['bayar'] == null || rows[index]['id'] == null) {
-      print('Error: Data for bayar or id is null');
-      return;
-    }
-
-    String bayarStr = rows[index]['bayar'].toString();
-
-    try {
-      // Convert bayarStr to int
-      int bayar = int.tryParse(bayarStr) ?? 0;
-      String paidDate = rows[index]['tanggal'].toString();
-      // Update the installment
-      await _paymentService.updateInstallment(
-          rows[index]['id'], bayar, paidDate);
-      print("Data successfully updated to backend");
-    } catch (e) {
-      print("Failed to update data: $e");
-    }
-  }
-
   void _showEditRowDialog(int index, String? installmentId) {
     if (installmentId == null) {
       print('Error: installmentId is null');
       return;
     }
-    TextEditingController tanggalController = TextEditingController();
+    TextEditingController tanggalController = TextEditingController(
+      text: rows[index]['tanggal'].toString(),
+    );
     TextEditingController bayarController = TextEditingController(
       text: rows[index]['bayar'].toString(),
     );
@@ -314,10 +294,12 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2101),
                   );
+                  print(pickedDate);
 
                   if (pickedDate != null) {
                     String formattedDate =
                         DateFormat('dd MMMM yyyy').format(pickedDate);
+                    print(formattedDate);
                     setState(() {
                       tanggalController.text = formattedDate;
                     });
@@ -345,8 +327,6 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
             TextButton(
               child: const Text('Selesai'),
               onPressed: () async {
-                print("Save button pressed");
-
                 if (bayarController.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -360,8 +340,6 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
 
                 int bayar =
                     int.tryParse(bayarController.text.replaceAll(',', '')) ?? 0;
-                print("Parsed payment value: $bayar");
-
                 if (bayar <= 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -374,27 +352,21 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                 }
 
                 try {
-                  // Tampilkan loading indicator
                   showDialog(
                     context: context,
                     barrierDismissible: false,
                     builder: (BuildContext context) {
-                      return Center(child: CircularProgressIndicator());
+                      return const Center(child: CircularProgressIndicator());
                     },
                   );
 
-                  print(
-                      'Calling updateInstallment with ID: $installmentId and payment: $bayar');
-                  // Parse the date from the controller text
+                  // Ambil tanggal dari pickedDate
                   DateTime selectedDate =
                       DateFormat('dd MMMM yyyy').parse(tanggalController.text);
+                  String paidDate = selectedDate.toUtc().toIso8601String();
 
-// Convert DateTime to ISO 8601 format
-                  String isoFormattedDate =
-                      selectedDate.toUtc().toIso8601String();
                   String message = await _paymentService.updateInstallment(
-                      installmentId, bayar, isoFormattedDate);
-                  print('updateInstallment successful');
+                      installmentId, bayar, paidDate);
 
                   // Fetch ulang data setelah update
                   await _updateInstallmentData(index, installmentId);
@@ -444,7 +416,12 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
           final updatedInstallment =
               glass.installments?.firstWhere((i) => i.id == installmentId);
           if (updatedInstallment != null) {
+            // format tanggal
+            String formattedDate = DateFormat('dd MMMM yyyy').format(
+                DateTime.parse(updatedInstallment.paidDate!)
+                    .add(const Duration(hours: 7)));
             setState(() {
+              rows[index]['tanggal'] = formattedDate;
               // Update data di UI
               rows[index]['bayar'] = updatedInstallment.amount.toString();
               // Update total dan sisa jika ada
