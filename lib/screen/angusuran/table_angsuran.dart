@@ -2,8 +2,6 @@ import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/services/add_payment_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
-import 'package:anugrah_lens/widget/formatters_widget.dart';
-import 'package:anugrah_lens/widget/textfield_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -24,11 +22,8 @@ class CreateTableAngsuran extends StatefulWidget {
 }
 
 class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
-  //edit//
   List<TextEditingController> controllers = [];
-
-  final PaymentService _paymentService =
-      PaymentService(); // Initialize the service
+  final PaymentService _paymentService = PaymentService();
   String? glassId;
   List<Map<String, dynamic>> rows = [];
   final NumberFormat currencyFormatter = NumberFormat('#,##0', 'id');
@@ -48,29 +43,9 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
   @override
   void initState() {
     super.initState();
+
     if (widget.glassId != null) {
       final glass = widget.glasses.firstWhere((g) => g.id == widget.glassId);
-
-      // Parse the order date from String to DateTime
-      DateTime orderDate = DateTime.parse(glass.orderDate!);
-
-      // Calculate the remaining amount
-      int total = glass.price ?? 0;
-      int deposit = glass.deposit ?? 0;
-      int remaining = total - deposit;
-
-      // Add the first row with deposit and order date
-      rows.add({
-        'no': 1,
-        'tanggal':
-            DateFormat('dd MMMM yyyy').format(orderDate), // Tanggal pemesanan
-        'bayar': deposit.toString(), // Deposit yang telah dibayarkan
-        'jumlah': total.toString(), // Total price
-        'sisa': remaining.toString(), // Remaining amount after deposit
-        'isEditing': false,
-      });
-      controllers.add(TextEditingController(text: deposit.toString()));
-
       // Menambahkan rows untuk installments
       if (glass.installments != null) {
         for (var installment in glass.installments!) {
@@ -81,7 +56,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
             'bayar': installment.amount.toString(),
             'jumlah': installment.total.toString(),
             'sisa': installment.remaining.toString(),
-            'id': installment.id, // Add installmentId here
+            'id': installment.id,
             'isEditing': false,
           });
           controllers
@@ -92,7 +67,6 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
   }
 
   void _showAddRowDialog() {
-    // Controller untuk input
     TextEditingController tanggalController = TextEditingController();
     TextEditingController bayarController = TextEditingController();
 
@@ -186,8 +160,8 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                     'sisa': paymentData['remaining'].toString(),
                     'isEditing': false,
                   });
+                  Navigator.of(context).pop();
                 });
-                Navigator.of(context).pop();
               },
             ),
           ],
@@ -196,9 +170,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
     );
   }
 
-//// dave button ////
   void _saveRow(int index, installmentId) async {
-  
     // Validate row data
     if (rows[index]['bayar'] == null || rows[index]['id'] == null) {
       print('Error: Data for bayar or id is null');
@@ -217,15 +189,6 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
       print("Failed to update data: $e");
     }
   }
-
-  //edit ///
-
-  // void _editRow(int index) {
-  //   print("Edit row at index $index");
-  //   setState(() {
-  //     rows[index]['isEditing'] = true;
-  //   });
-  // }
 
   void _showEditRowDialog(int index, installmentId) {
     if (installmentId == null) {
@@ -389,8 +352,6 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                       rows: List<DataRow>.generate(
                         rows.length,
                         (index) {
-                          print('Row index: $index');
-                          print('Row data: ${rows[index]}');
                           return DataRow(
                             cells: [
                               DataCell(
@@ -452,16 +413,11 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                                       ? const Icon(Icons.save)
                                       : const Icon(Icons.edit),
                                   onPressed: () {
-                                    if (rows[index]['isEditing']) {
-                                      _saveRow(index, rows[index]['id']);
+                                    String? installmentId = rows[index]['id'];
+                                    if (installmentId == null) {
+                                      print('Error: installmentId is null');
                                     } else {
-                                      String? installmentId = rows[index]['id'];
-                                      if (installmentId == null) {
-                                        print('Error: installmentId is null');
-                                      } else {
-                                        _showEditRowDialog(
-                                            index, installmentId);
-                                      }
+                                      _showEditRowDialog(index, installmentId);
                                     }
                                   },
                                 ),

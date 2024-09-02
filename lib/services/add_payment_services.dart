@@ -1,9 +1,8 @@
-import 'package:anugrah_lens/style/base_url.dart';
 import 'package:dio/dio.dart';
 
 class PaymentService {
   final Dio _dio = Dio();
-  final String baseUrl = 'https://vh9fszkr-8000.asse.devtunnels.ms';
+  final String baseUrl = 'https://vh9fszkr-9000.asse.devtunnels.ms';
 
   Future<Map<String, dynamic>> fetchPaymentDataFromBackend(
       int bayar, String glassId) async {
@@ -40,26 +39,27 @@ class PaymentService {
     }
   }
 
- Future<void> updateInstallment(String installmentId, int amount) async {
-  print('updateInstallment called with installmentId: $installmentId, amount: $amount'); 
-  try {
-    final response = await _dio.put('/installments/$installmentId', data: {
-      'amount': amount,
-    });
+  Future<void> updateInstallment(String installmentId, int amount) async {
+    print(
+        'updateInstallment called with installmentId: $installmentId, amount: $amount');
+    try {
+      final response =
+          await _dio.put('$baseUrl/edit-installment/$installmentId', data: {
+        'amount': amount,
+      });
 
-    if (response.statusCode == 200) {
-      print('Installment updated successfully');
-    } else {
-      print('Failed to update installment. Status code: ${response.statusCode}');
-      throw Exception('Failed to update installment');
+      if (response.statusCode == 200) {
+        print('Installment updated successfully');
+      } else {
+        print(
+            'Failed to update installment. Status code: ${response.statusCode}');
+        throw Exception('Failed to update installment');
+      }
+    } catch (e) {
+      print('Error during installment update: $e');
+      throw Exception('Error during installment update');
     }
-  } catch (e) {
-    print('Error during installment update: $e');
-    throw Exception('Error during installment update');
   }
-}
-
-
 
   // Add any additional methods here if needed
 }

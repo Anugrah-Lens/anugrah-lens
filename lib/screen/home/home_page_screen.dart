@@ -6,11 +6,8 @@ import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/card.dart';
 import 'package:anugrah_lens/widget/floating_action_button_widget.dart';
-import 'package:anugrah_lens/widget/seacrh_bar_widget.dart';
 import 'package:anugrah_lens/widget/textfield_widget.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class BerandaPageScreen extends StatefulWidget {
   BerandaPageScreen({Key? key}) : super(key: key);
