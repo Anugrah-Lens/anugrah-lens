@@ -4,16 +4,18 @@ class PaymentService {
   final Dio _dio = Dio();
   final String baseUrl = 'https://vh9fszkr-9000.asse.devtunnels.ms';
 
-  Future<Map<String, dynamic>> fetchPaymentDataFromBackend(
-      int bayar, String glassId) async {
+  Future<Map<String, dynamic>> addPaymentDataAmount(
+      int bayar, String glassId, String paidDate) async {
     try {
       print('Mengirim permintaan ke: $baseUrl/add-installment/$glassId');
       print('Dengan data: amount = $bayar');
+      print('Dengan data: paidDate = $paidDate');
 
       Response response = await _dio.post(
         '$baseUrl/add-installment/$glassId',
         data: {
           'amount': bayar,
+          'paidDate': paidDate,
         },
         options: Options(
           validateStatus: (status) {
@@ -24,10 +26,19 @@ class PaymentService {
 
       if (response.statusCode == 200) {
         return {
+          'success': true,
           'total': response.data['installment']['total'],
           'remaining': response.data['installment']['remaining'],
+          'message': response.data['message'], // Pesan sukses dari server
+        };
+      } else if (response.statusCode == 400) {
+        // Jika status code 400, berarti ada kesalahan input (bad request)
+        return {
+          'success': false,
+          'message': response.data['message'] ?? 'Bad request',
         };
       } else {
+        // Jika status code lainnya
         throw Exception('Failed to fetch payment data: ${response.statusCode}');
       }
     } on DioException catch (e) {
@@ -39,25 +50,30 @@ class PaymentService {
     }
   }
 
-  Future<void> updateInstallment(String installmentId, int amount) async {
+  Future<String> updateInstallment(
+      String installmentId, int amount, String paidDate) async {
     print(
         'updateInstallment called with installmentId: $installmentId, amount: $amount');
     try {
       final response =
           await _dio.put('$baseUrl/edit-installment/$installmentId', data: {
         'amount': amount,
+        'paidDate': paidDate,
       });
 
       if (response.statusCode == 200) {
         print('Installment updated successfully');
+        return response.data['message'] ??
+            'Installment updated successfully'; // Ambil pesan dari response
       } else {
         print(
             'Failed to update installment. Status code: ${response.statusCode}');
-        throw Exception('Failed to update installment');
+        throw Exception(
+            'Failed to update installment: ${response.data['message']}'); // Ambil pesan dari response
       }
     } catch (e) {
       print('Error during installment update: $e');
-      throw Exception('Error during installment update');
+      throw Exception('Error during installment update: $e');
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/services/add_payment_services.dart';
+import 'package:anugrah_lens/services/customers_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
   String? glassId;
   List<Map<String, dynamic>> rows = [];
   final NumberFormat currencyFormatter = NumberFormat('#,##0', 'id');
+  final CostumersService _customersService = CostumersService();
 
   void _addRow() {
     _showAddRowDialog();
@@ -69,6 +71,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
   void _showAddRowDialog() {
     TextEditingController tanggalController = TextEditingController();
     TextEditingController bayarController = TextEditingController();
+    print(tanggalController.text);
 
     showDialog(
       context: context,
@@ -124,7 +127,15 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
               child: const Text('Selesai'),
               onPressed: () async {
                 if (bayarController.text.isEmpty) {
-                  print('Error: Nilai pembayaran tidak boleh kosong');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Nilai pembayaran tidak boleh kosong',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
                   return;
                 }
 
@@ -132,36 +143,106 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                     int.tryParse(bayarController.text.replaceAll(',', '')) ?? 0;
 
                 if (bayar <= 0) {
-                  print('Error: Nilai pembayaran harus lebih besar dari 0');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Nilai pembayaran harus lebih besar dari 0',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
                   return;
                 }
 
                 String? glassId = widget.glassId;
 
                 if (glassId == null) {
-                  print('Error: glassId is null');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'glassId is null',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
                   return;
                 }
 
-                Map<String, dynamic>? paymentData = await _paymentService
-                    .fetchPaymentDataFromBackend(bayar, glassId);
+                try {
+                  // Tampilkan loading indicator
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) {
+                      return Center(child: CircularProgressIndicator());
+                    },
+                  );
 
-                if (paymentData == null) {
-                  print('Error: Payment data is null');
-                  return;
+                  // Parse the date from the controller text
+                  DateTime selectedDate =
+                      DateFormat('dd MMMM yyyy').parse(tanggalController.text);
+
+// Convert DateTime to ISO 8601 format
+                  String isoFormattedDate =
+                      selectedDate.toUtc().toIso8601String();
+
+// Mengirim data ke backend untuk menambahkan installment
+                  Map<String, dynamic> paymentData = await _paymentService
+                      .addPaymentDataAmount(bayar, glassId, isoFormattedDate);
+
+                  if (paymentData['success']) {
+                    // Segera setelah menambahkan, ambil data pelanggan dan update UI
+                    CustomersModel customersModel =
+                        await _customersService.fetchCustomers();
+                    // Ambil data installment yang baru ditambahkan
+                    final customer = customersModel.customer?.firstWhere((c) =>
+                        c.glasses?.any((g) => g.id == widget.glassId) == true);
+
+                    if (customer != null) {
+                      final glass = customer.glasses
+                          ?.firstWhere((g) => g.id == widget.glassId);
+                      if (glass != null) {
+                        setState(() {
+                          rows = glass.installments?.map((installment) {
+                                return {
+                                  'id': installment.id,
+                                  'tanggal': installment.paidDate ?? '',
+                                  'bayar': installment.amount.toString(),
+                                  'jumlah': installment.total.toString(),
+                                  'sisa': installment.remaining.toString(),
+                                  'isEditing': false,
+                                };
+                              }).toList() ??
+                              [];
+                        });
+                      }
+                    }
+
+                    // Menampilkan Snackbar
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(paymentData['message']),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+
+                    Navigator.of(context).pop(); // Tutup dialog loading
+                    Navigator.of(context).pop(); // Tutup dialog add
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(paymentData['message']),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.toString())),
+                  );
                 }
-
-                setState(() {
-                  rows.add({
-                    'no': rows.length + 1,
-                    'tanggal': tanggalController.text,
-                    'bayar': bayarController.text,
-                    'jumlah': paymentData['total'].toString(),
-                    'sisa': paymentData['remaining'].toString(),
-                    'isEditing': false,
-                  });
-                  Navigator.of(context).pop();
-                });
               },
             ),
           ],
@@ -190,11 +271,12 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
     }
   }
 
-  void _showEditRowDialog(int index, installmentId) {
+  void _showEditRowDialog(int index, String? installmentId) {
     if (installmentId == null) {
       print('Error: installmentId is null');
       return;
     }
+
     TextEditingController bayarController = TextEditingController(
       text: rows[index]['bayar'].toString(),
     );
@@ -230,7 +312,13 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                 print("Save button pressed");
 
                 if (bayarController.text.isEmpty) {
-                  print('Error: Nilai pembayaran tidak boleh kosong');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text('Error: Nilai pembayaran tidak boleh kosong'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
                   return;
                 }
 
@@ -239,23 +327,62 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                 print("Parsed payment value: $bayar");
 
                 if (bayar <= 0) {
-                  print('Error: Nilai pembayaran harus lebih besar dari 0');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                          'Error: Nilai pembayaran harus lebih besar dari 0'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
                   return;
                 }
 
                 try {
+                  // Tampilkan loading indicator
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) {
+                      return Center(child: CircularProgressIndicator());
+                    },
+                  );
+
                   print(
                       'Calling updateInstallment with ID: $installmentId and payment: $bayar');
-                  await _paymentService.updateInstallment(installmentId, bayar);
+                  // Parse the date from the controller text
+                  DateTime selectedDate =
+                      DateFormat('dd MMMM yyyy').parse(tanggalController.text);
+
+// Convert DateTime to ISO 8601 format
+                  String isoFormattedDate =
+                      selectedDate.toUtc().toIso8601String();
+                  String message = await _paymentService.updateInstallment(
+                      installmentId, bayar, isoFormattedDate);
                   print('updateInstallment successful');
 
-                  setState(() {
-                    rows[index]['bayar'] = bayarController.text;
-                    rows[index]['isEditing'] = false;
-                  });
-                  Navigator.of(context).pop();
+                  // Fetch ulang data setelah update
+                  await _updateInstallmentData(index, installmentId);
+
+                  // Menampilkan Snackbar dengan pesan dari response
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+
+                  Navigator.of(context).pop(); // Tutup dialog loading
+                  Navigator.of(context).pop(); // Tutup dialog edit
                 } catch (e) {
                   print('Failed to save changes: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+
+                  Navigator.of(context).pop(); // Tutup dialog loading
                 }
               },
             ),
@@ -263,6 +390,41 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
         );
       },
     );
+  }
+
+  Future<void> _updateInstallmentData(int index, String installmentId) async {
+    try {
+      // Ambil data terbaru dari server
+      CustomersModel customersModel = await _customersService.fetchCustomers();
+      final customer = customersModel.customer?.firstWhere((c) =>
+          c.glasses?.any((g) =>
+              g.installments?.any((i) => i.id == installmentId) == true) ==
+          true);
+
+      if (customer != null) {
+        final glass = customer.glasses?.firstWhere(
+            (g) => g.installments?.any((i) => i.id == installmentId) == true);
+        if (glass != null) {
+          final updatedInstallment =
+              glass.installments?.firstWhere((i) => i.id == installmentId);
+          if (updatedInstallment != null) {
+            setState(() {
+              // Update data di UI
+              rows[index]['bayar'] = updatedInstallment.amount.toString();
+              // Update total dan sisa jika ada
+              rows[index]['total'] =
+                  updatedInstallment.total; // Misalnya ada field total
+              rows[index]['sisa'] =
+                  updatedInstallment.remaining; // Misalnya ada field sisa
+              rows[index]['isEditing'] = false;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('Error updating installment data: $e');
+      throw Exception('Error updating installment data');
+    }
   }
 
   @override
