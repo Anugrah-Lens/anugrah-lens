@@ -205,17 +205,26 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                           ?.firstWhere((g) => g.id == widget.glassId);
                       if (glass != null) {
                         setState(() {
-                          rows = glass.installments?.map((installment) {
-                                return {
-                                  'id': installment.id,
-                                  'tanggal': installment.paidDate ?? '',
-                                  'bayar': installment.amount.toString(),
-                                  'jumlah': installment.total.toString(),
-                                  'sisa': installment.remaining.toString(),
-                                  'isEditing': false,
-                                };
-                              }).toList() ??
-                              [];
+                          rows =
+                              glass.installments?.asMap().entries.map((entry) {
+                                    int index = entry.key +
+                                        1; // +1 agar nomor mulai dari 1
+                                    var installment = entry.value;
+                                    final formattedDate =
+                                        DateFormat('dd MMMM yyyy').format(
+                                            DateTime.parse(
+                                                installment.paidDate ?? ''));
+                                    return {
+                                      'no': index.toString(),
+                                      'id': installment.id,
+                                      'tanggal': formattedDate,
+                                      'bayar': installment.amount.toString(),
+                                      'jumlah': installment.total.toString(),
+                                      'sisa': installment.remaining.toString(),
+                                      'isEditing': false,
+                                    };
+                                  }).toList() ??
+                                  [];
                         });
                       }
                     }
@@ -263,8 +272,10 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
     try {
       // Convert bayarStr to int
       int bayar = int.tryParse(bayarStr) ?? 0;
+      String paidDate = rows[index]['tanggal'].toString();
       // Update the installment
-      await _paymentService.updateInstallment(rows[index]['id'], bayar);
+      await _paymentService.updateInstallment(
+          rows[index]['id'], bayar, paidDate);
       print("Data successfully updated to backend");
     } catch (e) {
       print("Failed to update data: $e");
@@ -276,7 +287,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
       print('Error: installmentId is null');
       return;
     }
-
+    TextEditingController tanggalController = TextEditingController();
     TextEditingController bayarController = TextEditingController(
       text: rows[index]['bayar'].toString(),
     );
@@ -290,10 +301,35 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
+                controller: tanggalController,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  hintText: 'Pilih tanggal',
+                  labelText: 'Tanggal',
+                ),
+                onTap: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2101),
+                  );
+
+                  if (pickedDate != null) {
+                    String formattedDate =
+                        DateFormat('dd MMMM yyyy').format(pickedDate);
+                    setState(() {
+                      tanggalController.text = formattedDate;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 10),
+              TextField(
                 controller: bayarController,
                 decoration: const InputDecoration(
-                  hintText: 'Jumlah Bayar',
-                  labelText: 'Jumlah Bayar',
+                  hintText: 'Bayar',
+                  labelText: 'Bayar',
                 ),
                 keyboardType: TextInputType.number,
               ),
