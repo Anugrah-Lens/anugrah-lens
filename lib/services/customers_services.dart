@@ -11,7 +11,7 @@ class CostumersService {
   Future<CustomersModel> fetchCustomers() async {
     try {
       final response =
-          await _dio.get("https://vh9fszkr-9000.asse.devtunnels.ms/customers");
+          await _dio.get("$baseUrl/customers");
       return CustomersModel.fromMap(response.data);
     } catch (error) {
       throw Exception("Failed to fetch Communities: $error");

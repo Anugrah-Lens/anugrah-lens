@@ -1,3 +1,4 @@
+import 'package:anugrah_lens/models/customersGlasses_model.dart';
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/angusuran/table_angsuran.dart';
 import 'package:anugrah_lens/style/color_style.dart';
@@ -14,10 +15,11 @@ class DetailAngsuranSCreen extends StatefulWidget {
 
   DetailAngsuranSCreen({
     Key? key,
+    required this.customer,
     required this.glass,
     required this.idCustomer,
     required this.idGlass,
-    required this.customer,
+    
   }) : super(key: key);
 
   @override
@@ -217,7 +219,7 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                       MaterialPageRoute(
                         builder: (context) => CreateTableAngsuran(
                           customer: customer,
-                          glasses: widget.glass,
+                          glasses:  widget.glass,
                           glassId: widget.idGlass,
                         ),
                       ),
@@ -233,141 +235,3 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
   }
 }
 
-
-// // Widget AlertDialog terpisah, ditempatkan di bawah
-// class PaymentConfirmationDialog extends StatelessWidget {
-//   final VoidCallback onConfirmed;
-
-//   PaymentConfirmationDialog({required this.onConfirmed});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return AlertDialog(
-//       shape: RoundedRectangleBorder(
-//         borderRadius: BorderRadius.circular(12.0),
-//       ),
-//       title: const Center(
-//         child: Text('Konfirmasi Pembayaran', style: FontFamily.title),
-//       ),
-//       content: const Text(
-//         textAlign: TextAlign.center,
-//         'Apakah pembayaran kaca mata telah dilunasi secara cash?',
-//         style: FontFamily.caption,
-//       ),
-//       actions: [
-//         Row(
-//           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//           children: [
-//             TextButton(
-//               onPressed: () {
-//                 Navigator.of(context).pop(); // Menutup dialog
-//               },
-//               child: const Text('Belum'),
-//               style: TextButton.styleFrom(
-//                 foregroundColor: Colors.black, // Warna teks
-//                 side: const BorderSide(
-//                   color: Colors.black, // Warna border
-//                   width: 1.5, // Lebar border
-//                 ),
-//                 shape: RoundedRectangleBorder(
-//                   borderRadius: BorderRadius.circular(8),
-//                 ),
-//                 padding:
-//                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-//               ),
-//             ),
-//             TextButton(
-//               onPressed: () {
-//                 onConfirmed(); // Memanggil callback ketika tombol "Lunas" ditekan
-//                 Navigator.of(context).pop(); // Menutup dialog
-//               },
-//               style: TextButton.styleFrom(
-//                 backgroundColor:
-//                     ColorStyle.primaryColor, // Warna latar belakang
-//                 foregroundColor: ColorStyle.whiteColors, // Warna teks
-//                 shape: RoundedRectangleBorder(
-//                   borderRadius: BorderRadius.circular(8),
-//                 ),
-//                 padding:
-//                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-//               ),
-//               child: Text('Lunas',
-//                   style: FontFamily.caption
-//                       .copyWith(color: ColorStyle.whiteColors)),
-//             ),
-//           ],
-//         ),
-//       ],
-//     );
-//   }
-// }
-
-// /// dialoh cancel /////
-
-// class CancelConfirmationDialog extends StatelessWidget {
-//   final VoidCallback onCancelConfirmed;
-
-//   const CancelConfirmationDialog({Key? key, required this.onCancelConfirmed})
-//       : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return AlertDialog(
-//       shape: RoundedRectangleBorder(
-//         borderRadius: BorderRadius.circular(12.0),
-//       ),
-//       title: const Center(
-//         child: Text('Batalkan Konfrimasi', style: FontFamily.title),
-//       ),
-//       content: const Text(
-//         textAlign: TextAlign.center,
-//         'Apakah Anda yakin ingin membatalkan Konfirmasi ini ?',
-//         style: FontFamily.caption,
-//       ),
-//       actions: [
-//         Row(
-//           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//           children: [
-//             TextButton(
-//               onPressed: () {
-//                 Navigator.of(context).pop(); // Menutup dialog
-//               },
-//               child: const Text('Tidak'),
-//               style: TextButton.styleFrom(
-//                 foregroundColor: Colors.black, // Warna teks
-//                 side: const BorderSide(
-//                   color: Colors.black, // Warna border
-//                   width: 1.5, // Lebar border
-//                 ),
-//                 shape: RoundedRectangleBorder(
-//                   borderRadius: BorderRadius.circular(8),
-//                 ),
-//                 padding:
-//                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-//               ),
-//             ),
-//             TextButton(
-//               onPressed: () {
-//                 onCancelConfirmed(); // Memanggil callback ketika tombol "Lunas" ditekan
-//                 Navigator.of(context).pop(); // Menutup dialog
-//               },
-//               style: TextButton.styleFrom(
-//                 backgroundColor:
-//                     ColorStyle.primaryColor, // Warna latar belakang
-//                 foregroundColor: ColorStyle.whiteColors, // Warna teks
-//                 shape: RoundedRectangleBorder(
-//                   borderRadius: BorderRadius.circular(8),
-//                 ),
-//                 padding:
-//                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-//               ),
-//               child: Text('Ya',
-//                   style: FontFamily.caption
-//                       .copyWith(color: ColorStyle.whiteColors)),
-//             ),
-//           ],
-//         ),
-//       ],
-//     );
-//   }
-// }

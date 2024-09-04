@@ -1,3 +1,4 @@
+import 'package:anugrah_lens/models/customersGlasses_model.dart';
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/services/add_payment_services.dart';
 import 'package:anugrah_lens/services/customers_services.dart';
@@ -45,9 +46,10 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
   @override
   void initState() {
     super.initState();
-
+    glassId = widget.glassId;
     if (widget.glassId != null) {
       final glass = widget.glasses.firstWhere((g) => g.id == widget.glassId);
+      rows = [];
       // Menambahkan rows untuk installments
       if (glass.installments != null) {
         for (var installment in glass.installments!) {
@@ -67,6 +69,12 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
         }
       }
     }
+    rows.sort((a, b) {
+      DateTime dateA = DateFormat('dd MMMM yyyy').parse(a['tanggal']);
+      DateTime dateB = DateFormat('dd MMMM yyyy').parse(b['tanggal']);
+      return dateA.compareTo(dateB);
+    });
+    // Convert and sort the rows based on the 'tanggal' field
   }
 
   void _showAddRowDialog() {
@@ -225,6 +233,13 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                                 };
                               }).toList() ??
                               [];
+                          rows.sort((a, b) {
+                            DateTime dateA =
+                                DateFormat('dd MMMM yyyy').parse(a['tanggal']);
+                            DateTime dateB =
+                                DateFormat('dd MMMM yyyy').parse(b['tanggal']);
+                            return dateA.compareTo(dateB);
+                          });
                         });
                       }
                     }
@@ -246,6 +261,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                         backgroundColor: Colors.red,
                       ),
                     );
+                    Navigator.of(context).pop(); // Tutup dialog loading
                   }
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -430,6 +446,11 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
               rows[index]['sisa'] =
                   updatedInstallment.remaining; // Misalnya ada field sisa
               rows[index]['isEditing'] = false;
+              rows.sort((a, b) {
+                DateTime dateA = DateFormat('dd MMMM yyyy').parse(a['tanggal']);
+                DateTime dateB = DateFormat('dd MMMM yyyy').parse(b['tanggal']);
+                return dateA.compareTo(dateB);
+              });
             });
           }
         }

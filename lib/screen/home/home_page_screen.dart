@@ -123,6 +123,7 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
           // Mengambil daftar pelanggan
           List<Customer> customers = snapshot.data!.customer!;
           final CustomersModel customersModel = snapshot.data!;
+          
 
           return Padding(
             padding: const EdgeInsets.all(20.0),
@@ -139,38 +140,27 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                     // Memastikan navigasi hanya terjadi jika nama dipilih dari dropdown
                     Customer? selectedCustomer = customers
                         .firstWhere((element) => element.name == selectedName);
+                    Glass? selectedGlass =
+                        selectedCustomer.glasses?.isNotEmpty == true
+                            ? selectedCustomer.glasses!.first
+                            : null;
 
-                    if (selectedCustomer != null) {
-                      // Select the first glass if it exists
-                      Glass? selectedGlass =
-                          selectedCustomer.glasses?.isNotEmpty == true
-                              ? selectedCustomer.glasses!.first
-                              : null;
-
-                      if (selectedGlass != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MenuAngsuranScreen(
-                              customersModel: selectedCustomer,
-                              idCustomer: selectedCustomer.id ?? '',
-                              idGlass: selectedGlass.id ?? '',
-                            ),
-                          ),
-                        );
-                      } else {
-                        // Handle the case where no glass is available
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content:
-                                Text('No glass available for this customer'),
-                          ),
-                        );
-                      }
-                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MenuAngsuranScreen(
+                          glass: selectedCustomer.glasses ?? [],
+                          idGlass: selectedGlass!.id ??
+                              '', // Pass the selected glass ID
+                          customersModel: selectedCustomer,
+                          idCustomer: selectedCustomer.id ?? '',
+                          // jangan ambilang first tapi sesuai dengan yang di pilih
+                        ),
+                      ),
+                    );
                   },
                   prefixIcons:
-                      const Icon(Icons.search, color: ColorStyle.disableColor),
+                      const Icon(Icons.search, color: Color.fromARGB(255, 53, 35, 35)),
                   suffixIcons: null,
                   controller: name,
                   hintText: 'cari nama pelanggan',
@@ -197,10 +187,13 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => MenuAngsuranScreen(
+                                    glass: customer.glasses ?? [],
                                     customersModel: customer,
                                     idCustomer: customer.id ?? '',
                                     idGlass: selectedGlass.id ??
                                         '', // Pass the selected glass ID
+
+                                    // Pass the selected glass ID
                                   ),
                                 ),
                               );

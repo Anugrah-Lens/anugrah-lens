@@ -1,3 +1,6 @@
+// To parse this JSON data, do
+//
+//     final customersModel = customersModelFromMap(jsonString);
 
 import 'dart:convert';
 
@@ -107,10 +110,6 @@ class Glass {
         customerId: json["customerId"],
         installments: json["installments"] == null ? [] : List<Installment>.from(json["installments"]!.map((x) => Installment.fromMap(x))),
     );
-
-  get leftSize => null;
-
-  get rightSize => null;
 
     Map<String, dynamic> toMap() => {
         "id": id,
