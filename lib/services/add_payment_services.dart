@@ -46,7 +46,7 @@ class PaymentService {
     }
   }
 
-  Future<String> updateInstallment(
+  Future<String> editInstallment(
       String installmentId, int amount, String paidDate) async {
     try {
       final response =

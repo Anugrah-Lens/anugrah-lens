@@ -1,3 +1,4 @@
+import 'package:anugrah_lens/models/customer_data_model.dart';
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/services/add_payment_services.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
@@ -7,15 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class CreateTableAngsuran extends StatefulWidget {
-  final List<Glass> glasses;
-  final Customer customer;
+  final String idCustomer;
   final String? glassId;
 
   const CreateTableAngsuran({
     super.key,
     required this.glassId,
-    required this.glasses,
-    required this.customer,
+    required this.idCustomer,
   });
 
   @override
@@ -24,6 +23,7 @@ class CreateTableAngsuran extends StatefulWidget {
 
 class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
   List<TextEditingController> controllers = [];
+  late Future<CustomerData> customersData;
   final PaymentService _paymentService = PaymentService();
   String? glassId;
   List<Map<String, dynamic>> rows = [];
@@ -45,29 +45,9 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
   @override
   void initState() {
     super.initState();
-    glassId = widget.glassId;
-    if (widget.glassId != null) {
-      final glass = widget.glasses.firstWhere((g) => g.id == widget.glassId);
-      rows = [];
-      // Menambahkan rows untuk installments
-      if (glass.installments != null) {
-        for (var installment in glass.installments!) {
-          rows.add({
-            'no': rows.length + 1,
-            'tanggal': DateFormat('dd MMMM yyyy').format(
-                DateTime.parse(installment.paidDate!)
-                    .add(const Duration(hours: 7))),
-            'bayar': installment.amount.toString(),
-            'jumlah': installment.total.toString(),
-            'sisa': installment.remaining.toString(),
-            'id': installment.id,
-            'isEditing': false,
-          });
-          controllers
-              .add(TextEditingController(text: installment.amount.toString()));
-        }
-      }
-    }
+    /////////// fetch data customer ////////////////
+    customersData = CostumersService().fetchCustomerById(widget.idCustomer);
+
     rows.sort((a, b) {
       DateTime dateA = DateFormat('dd MMMM yyyy').parse(a['tanggal']);
       DateTime dateB = DateFormat('dd MMMM yyyy').parse(b['tanggal']);
@@ -79,7 +59,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
   void _showAddRowDialog() {
     TextEditingController tanggalController = TextEditingController();
     TextEditingController bayarController = TextEditingController();
-    // Datetime pickedDate =[]
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -102,13 +82,10 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2101),
                   );
-                  // print pickedDate
-                  print(pickedDate);
 
                   if (pickedDate != null) {
                     String formattedDate =
                         DateFormat('dd MMMM yyyy').format(pickedDate);
-                    print(formattedDate);
                     setState(() {
                       tanggalController.text = formattedDate;
                     });
@@ -130,12 +107,26 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Tutup dialog
               },
             ),
             TextButton(
               child: const Text('Selesai'),
               onPressed: () async {
+                // Validasi input
+                if (tanggalController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Tanggal pembayaran tidak boleh kosong',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
                 if (bayarController.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -195,12 +186,12 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                       DateFormat('dd MMMM yyyy').parse(tanggalController.text);
                   String paidDate = selectedDate.toUtc().toIso8601String();
 
-// Mengirim data ke backend untuk menambahkan installment
+                  // Mengirim data ke backend untuk menambahkan installment
                   Map<String, dynamic> paymentData = await _paymentService
                       .addPaymentDataAmount(bayar, glassId, paidDate);
-
+                  print("Payment data response: $paymentData");
+                  // Jika berhasil
                   if (paymentData['success']) {
-                    // Segera setelah menambahkan, ambil data pelanggan dan update UI
                     CustomersModel customersModel =
                         await _customersService.fetchCustomers();
                     // Ambil data installment yang baru ditambahkan
@@ -241,30 +232,34 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                           });
                         });
                       }
+                      // Menampilkan Snackbar
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(paymentData['message']),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                      print("Total: ${paymentData['total']}");
+                      // Perbarui data customer dan tutup dialog add
                     }
 
-                    // Menampilkan Snackbar
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(paymentData['message']),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-
-                    Navigator.of(context).pop(); // Tutup dialog loading
                     Navigator.of(context).pop(); // Tutup dialog add
                   } else {
+                    // Menampilkan error jika tidak berhasil
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(paymentData['message']),
                         backgroundColor: Colors.red,
                       ),
                     );
-                    Navigator.of(context).pop(); // Tutup dialog loading
                   }
+
+                  Navigator.of(context).pop(); // Tutup dialog loading
                 } catch (e) {
+                  // Menangani error
+                  Navigator.of(context).pop(); // Tutup dialog loading
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString())),
+                    SnackBar(content: Text('Error: $e')),
                   );
                 }
               },
@@ -380,11 +375,13 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                       DateFormat('dd MMMM yyyy').parse(tanggalController.text);
                   String paidDate = selectedDate.toUtc().toIso8601String();
 
-                  String message = await _paymentService.updateInstallment(
+                  String message = await _paymentService.editInstallment(
+                    
                       installmentId, bayar, paidDate);
-
-                  // Fetch ulang data setelah update
-                  await _updateInstallmentData(index, installmentId);
+                  setState(() {
+                    customersData =
+                        CostumersService().fetchCustomerById(widget.idCustomer);
+                  });
 
                   // Menampilkan Snackbar dengan pesan dari response
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -415,51 +412,6 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
     );
   }
 
-  Future<void> _updateInstallmentData(int index, String installmentId) async {
-    try {
-      // Ambil data terbaru dari server
-      CustomersModel customersModel = await _customersService.fetchCustomers();
-      final customer = customersModel.customer?.firstWhere((c) =>
-          c.glasses?.any((g) =>
-              g.installments?.any((i) => i.id == installmentId) == true) ==
-          true);
-
-      if (customer != null) {
-        final glass = customer.glasses?.firstWhere(
-            (g) => g.installments?.any((i) => i.id == installmentId) == true);
-        if (glass != null) {
-          final updatedInstallment =
-              glass.installments?.firstWhere((i) => i.id == installmentId);
-          if (updatedInstallment != null) {
-            // format tanggal
-            String formattedDate = DateFormat('dd MMMM yyyy').format(
-                DateTime.parse(updatedInstallment.paidDate!)
-                    .add(const Duration(hours: 7)));
-            setState(() {
-              rows[index]['tanggal'] = formattedDate;
-              // Update data di UI
-              rows[index]['bayar'] = updatedInstallment.amount.toString();
-              // Update total dan sisa jika ada
-              rows[index]['total'] =
-                  updatedInstallment.total; // Misalnya ada field total
-              rows[index]['sisa'] =
-                  updatedInstallment.remaining; // Misalnya ada field sisa
-              rows[index]['isEditing'] = false;
-              rows.sort((a, b) {
-                DateTime dateA = DateFormat('dd MMMM yyyy').parse(a['tanggal']);
-                DateTime dateB = DateFormat('dd MMMM yyyy').parse(b['tanggal']);
-                return dateA.compareTo(dateB);
-              });
-            });
-          }
-        }
-      }
-    } catch (e) {
-      print('Error updating installment data: $e');
-      throw Exception('Error updating installment data');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final NumberFormat currencyFormatter = NumberFormat('#,##0', 'id');
@@ -471,191 +423,222 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
           style: FontFamily.subtitle.copyWith(color: ColorStyle.secondaryColor),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8.0, right: 8.0),
-              child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('Status Pembayaran :',
-                          style: FontFamily.titleForm),
-                      const SizedBox(width: 10),
-                      Column(
-                        children: widget.glasses
-                            .map((glass) =>
-                                Text(glass.paymentStatus ?? 'No status'))
-                            .toList(),
-                      )
-                    ],
-                  )),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                        minWidth: MediaQuery.of(context).size.width),
-                    child: DataTable(
-                      headingRowColor: MaterialStateColor.resolveWith(
-                        (states) => ColorStyle.primaryColor,
-                      ),
-                      columns: const <DataColumn>[
-                        DataColumn(
-                          label: Text(
-                            'No',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Text(
-                            'Tanggal',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Text(
-                            'Bayar',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Text(
-                            'Jumlah',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Text(
-                            'Sisa',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Text(
-                            'Aksi',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                      rows: List<DataRow>.generate(
-                        rows.length,
-                        (index) {
-                          return DataRow(
-                            cells: [
-                              DataCell(
-                                Text(
-                                  rows[index]['no'].toString(),
+      body: FutureBuilder<CustomerData>(
+        future: customersData,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return SizedBox(
+              height: MediaQuery.of(context).size.height / 2.0,
+              child: const Center(child: CircularProgressIndicator()),
+            );
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (snapshot.hasData) {
+            final customer = snapshot.data!.customer!;
+
+            /// ambil data glass dari widget.glassId ///
+            final glasses = customer.glasses
+                    ?.where((glass) => glass.id == widget.glassId)
+                    .toList() ??
+                [];
+
+            /// ambil data installment dari glasses ///
+            final installment =
+                glasses.expand((glass) => glass.installments ?? []).toList();
+
+            /// tampilkan data ///
+
+            if (installment.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SizedBox(
+                    width: double.infinity,
+                    height: MediaQuery.of(context).size.height / 2,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Center(child: Text('No data available')),
+                    )),
+              );
+            }
+
+            return Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0, right: 8.0),
+                    child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('Status Pembayaran :',
+                                style: FontFamily.titleForm),
+                            const SizedBox(width: 10),
+                            Column(
+                              children: glasses.map((glass) {
+                                return Text(
+                                  glass.paymentStatus == 'Paid'
+                                      ? 'Lunas'
+                                      : 'Belum Lunas',
+                                  style: TextStyle(
+                                    color: glass.paymentStatus == 'Paid'
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                );
+                              }).toList(),
+                            )
+                          ],
+                        )),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                              minWidth: MediaQuery.of(context).size.width),
+                          child: DataTable(
+                            headingRowColor: MaterialStateColor.resolveWith(
+                              (states) => ColorStyle.primaryColor,
+                            ),
+                            columns: const <DataColumn>[
+                              DataColumn(
+                                label: Text(
+                                  'No',
+                                  style: TextStyle(color: Colors.white),
                                 ),
                               ),
-                              DataCell(
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    minWidth: 80,
-                                  ),
-                                  child: Text(
-                                    rows[index]['tanggal'].toString(),
-                                  ),
+                              DataColumn(
+                                label: Text(
+                                  'Tanggal',
+                                  style: TextStyle(color: Colors.white),
                                 ),
                               ),
-                              DataCell(
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    minWidth: 80,
-                                  ),
-                                  child: rows[index]['isEditing']
-                                      ? TextField(
-                                          controller: controllers[index],
-                                          keyboardType: TextInputType.number,
-                                        )
-                                      : Text(
-                                          currencyFormatter.format(int.parse(
-                                              rows[index]['bayar'].toString())),
-                                        ),
+                              DataColumn(
+                                label: Text(
+                                  'Bayar',
+                                  style: TextStyle(color: Colors.white),
                                 ),
                               ),
-                              DataCell(
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    minWidth: 80,
-                                  ),
-                                  child: Text(
-                                    currencyFormatter.format(int.parse(
-                                        rows[index]['jumlah'].toString())),
-                                  ),
+                              DataColumn(
+                                label: Text(
+                                  'Jumlah',
+                                  style: TextStyle(color: Colors.white),
                                 ),
                               ),
-                              DataCell(
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    minWidth: 80,
-                                  ),
-                                  child: Text(
-                                    currencyFormatter.format(int.parse(
-                                        rows[index]['sisa'].toString())),
-                                  ),
+                              DataColumn(
+                                label: Text(
+                                  'Sisa',
+                                  style: TextStyle(color: Colors.white),
                                 ),
                               ),
-                              DataCell(
-                                IconButton(
-                                  icon: rows[index]['isEditing']
-                                      ? const Icon(Icons.save)
-                                      : const Icon(Icons.edit),
-                                  onPressed: () {
-                                    String? installmentId = rows[index]['id'];
-                                    if (installmentId == null) {
-                                      print('Error: installmentId is null');
-                                    } else {
-                                      _showEditRowDialog(index, installmentId);
-                                    }
-                                  },
+                              DataColumn(
+                                label: Text(
+                                  'Aksi',
+                                  style: TextStyle(color: Colors.white),
                                 ),
                               ),
                             ],
-                          );
-                        },
+                            rows: List<DataRow>.generate(
+                              installment.length,
+                              (index) {
+                                final installmentData = installment[index];
+                                return DataRow(
+                                  cells: <DataCell>[
+                                    DataCell(Text('${index + 1}')),
+                                    DataCell(
+                                      // Text(
+                                      //   DateFormat('dd MMMM yyyy').format(
+                                      //       DateTime.parse(installment.paidDate)
+                                      //           .add(const Duration(hours: 7))),
+                                      // ),
+                                      Text(
+                                        DateFormat('dd MMMM yyyy').format(
+                                          DateTime.parse(
+                                                  installmentData.paidDate)
+                                              .toLocal(),
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(installmentData.amount?.toString() ??
+                                          'N/A'),
+                                    ),
+                                    DataCell(
+                                      Text(installmentData.total?.toString() ??
+                                          'N/A'),
+                                    ),
+                                    DataCell(
+                                      Text(installmentData.remaining
+                                              ?.toString() ??
+                                          'N/A'),
+                                    ), // Sisa
+                                    DataCell(
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.edit),
+                                            onPressed: () {
+                                              _showEditRowDialog(
+                                                  index, installmentData.id);
+                                            },
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete),
+                                            onPressed: () {},
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children:
+
+                            /// buat apabila paymentStatus = Paid maka hilang kontainernya
+                            glasses.map(
+                          (glass) {
+                            return glass.paymentStatus == 'Paid'
+                                ? const SizedBox()
+                                : Container(
+                                    decoration: const BoxDecoration(
+                                      color: ColorStyle.secondaryColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: IconButton(
+                                      onPressed: _addRow,
+                                      icon: const Icon(Icons.add,
+                                          color: ColorStyle.whiteColors),
+                                    ),
+                                  );
+                          },
+                        ).toList(),
+                      ),
+                    ),
+                  )
+                ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: widget.glasses
-                      .where((glass) =>
-                          glass.id == widget.glassId &&
-                          glass.paymentStatus != 'Paid')
-                      .map(
-                        (glass) => Container(
-                          decoration: const BoxDecoration(
-                            color: ColorStyle.secondaryColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            onPressed: _addRow,
-                            icon: const Icon(Icons.add,
-                                color: ColorStyle.whiteColors),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            )
-          ],
-        ),
+            );
+          } else {
+            return const SizedBox();
+          }
+        },
       ),
     );
   }

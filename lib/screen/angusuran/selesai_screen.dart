@@ -1,67 +1,104 @@
+import 'package:anugrah_lens/models/customer_data_model.dart';
 import 'package:anugrah_lens/models/customersGlasses_model.dart';
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/angusuran/detail_angsuran_screen.dart';
+import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/widget/card.dart';
 import 'package:flutter/material.dart';
 
 class SelesaiScreen extends StatefulWidget {
-  final Customer customer; // Object to represent the customer
-  final List<Glass> glass; // List of Glass objects associated with the customer
   final String idCustomer;
 
   SelesaiScreen({
     Key? key,
-    required this.customer,
     required this.idCustomer,
-    required this.glass,
   }) : super(key: key);
 
   @override
   State<SelesaiScreen> createState() => _SelesaiScreenState();
 }
 
-
 class _SelesaiScreenState extends State<SelesaiScreen> {
+  late Future<CustomerData> customersData;
+  @override
+  void initState() {
+    super.initState();
+    customersData = CostumersService().fetchCustomerById(widget.idCustomer);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final customer = widget.customer; // Akses data customer
-
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Iterate over the list of glasses and display a card for each
-          ...widget.glass.map((glass) {
-            return CardAnsuranWidget(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DetailAngsuranSCreen(
-                      idCustomer: widget.idCustomer,
-                      idGlass: glass.id ?? '',
-                      customer: customer,
-                      glass: widget.glass, // Passing the list of Glass objects
-                    ),
-                  ),
-                );
-              },
-              label: glass.paymentMethod ?? 'Metode pembayaran tidak tersedia',
-              address: customer.address ?? 'Alamat tidak tersedia',
-              sisaPembayaran:
-                  'Sisa Pembayaran : Rp. ${glass.price != null && glass.deposit != null ? glass.price! - glass.deposit! : 0}',
-              frameName: glass.frame ?? 'Nama frame tidak tersedia',
-              glassesName: glass.lensType ?? 'Tipe lensa tidak tersedia',
-              decoration: BoxDecoration(
-                color: ColorStyle.secondaryColor,
-                borderRadius: BorderRadius.circular(4.0),
-              ),
+    return FutureBuilder<CustomerData>(
+      future: customersData,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return SizedBox(
+            height: MediaQuery.of(context).size.height / 2.0,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (snapshot.hasData) {
+          final customer = snapshot.data!.customer!;
+          final glasses = customer.glasses
+                  ?.where((glass) => glass.paymentStatus == 'Paid')
+                  .toList() ??
+              [];
+          if (glasses.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                  width: double.infinity,
+                  height: MediaQuery.of(context).size.height / 2,
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Center(child: Text('No data available')),
+                  )),
             );
-          }).toList(),
-        ],
-      ),
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ...glasses.map((glass) {
+                  return CardAnsuranWidget(
+                    onTap: () {
+                      // Add navigation to detail screen here
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailAngsuranSCreen(
+                            idGlass: glass.id.toString(),
+                            idCustomer: widget.idCustomer,
+                          ),
+                        ),
+                      );
+                    },
+                    label: glass.paymentMethod ??
+                        'Metode pembayaran tidak tersedia',
+                    address: customer.address ?? 'Alamat tidak tersedia',
+                    sisaPembayaran:
+                        'Sisa Pembayaran: Rp. ${glass.price != null && glass.deposit != null ? glass.price! - glass.deposit! : 0}',
+                    frameName: glass.frame ?? 'Nama frame tidak tersedia',
+                    glassesName: glass.lensType ?? 'Tipe lensa tidak tersedia',
+                    decoration: BoxDecoration(
+                      color: ColorStyle.secondaryColor,
+                      borderRadius: BorderRadius.circular(4.0),
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          );
+        } else {
+          return const SizedBox(
+            child: Text("Tidak ada Data"),
+          );
+        }
+      },
     );
   }
 }

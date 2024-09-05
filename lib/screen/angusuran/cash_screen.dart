@@ -1,4 +1,5 @@
 import 'package:anugrah_lens/models/customer_data_model.dart';
+import 'package:anugrah_lens/screen/angusuran/detail_angsuran_screen.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/widget/card.dart';
@@ -43,6 +44,19 @@ class _CashScreenState extends State<CashScreen> {
                   ?.where((glass) => glass.paymentMethod == 'Cash')
                   .toList() ??
               [];
+          if (glasses.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                  width: double.infinity,
+                  height: MediaQuery.of(context).size.height / 2,
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Center(child: Text('No data available')),
+                  )),
+            );
+          }
+
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -52,12 +66,15 @@ class _CashScreenState extends State<CashScreen> {
                   return CardAnsuranWidget(
                     onTap: () {
                       // Add navigation to detail screen here
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => DetailAngsuranScreen(),
-                      //   ),
-                      // );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailAngsuranSCreen(
+                            idGlass: glass.id.toString(),
+                            idCustomer: widget.idCustomer,
+                          ),
+                        ),
+                      );
                     },
                     label: glass.paymentMethod ??
                         'Metode pembayaran tidak tersedia',

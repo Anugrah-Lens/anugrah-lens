@@ -2,6 +2,7 @@
 
 import 'package:anugrah_lens/screen/angusuran/angsuran_screen.dart';
 import 'package:anugrah_lens/screen/angusuran/cash_screen.dart';
+import 'package:anugrah_lens/screen/angusuran/selesai_screen.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:flutter/material.dart';
@@ -67,10 +68,10 @@ class _MenuAngsuranScreenState extends State<MenuAngsuranScreen> {
             CashScreen(
               idCustomer: widget.idCustomer,
             )
-          // else if (isSelesaiActive)
-          //   SelesaiScreen(
-          //     idCustomer: widget.idCustomer,
-          //   ),
+          else if (isSelesaiActive)
+            SelesaiScreen(
+              idCustomer: widget.idCustomer,
+            ),
         ],
       ),
     );

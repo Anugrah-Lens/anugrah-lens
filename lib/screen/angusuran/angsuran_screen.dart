@@ -1,4 +1,5 @@
 import 'package:anugrah_lens/models/customer_data_model.dart';
+import 'package:anugrah_lens/screen/angusuran/detail_angsuran_screen.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/widget/card.dart';
@@ -39,10 +40,23 @@ class _AngsuranScreenState extends State<AngsuranScreen> {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
           final customer = snapshot.data!.customer!;
+
           final glasses = customer.glasses
                   ?.where((glass) => glass.paymentMethod == 'Installments')
                   .toList() ??
               [];
+          if (glasses.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                  width: double.infinity,
+                  height: MediaQuery.of(context).size.height / 2,
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Center(child: Text('No data available')),
+                  )),
+            );
+          }
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -52,15 +66,17 @@ class _AngsuranScreenState extends State<AngsuranScreen> {
                   return CardAnsuranWidget(
                     onTap: () {
                       // Add navigation to detail screen here
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => DetailAngsuranScreen(),
-                      //   ),
-                      // );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailAngsuranSCreen(
+                            idGlass: glass.id.toString(),
+                            idCustomer: widget.idCustomer,
+                          ),
+                        ),
+                      );
                     },
-                    label: glass.paymentMethod ??
-                        'Metode pembayaran tidak tersedia',
+                    label: glass.paymentMethod ?? 'Metode pembayaran tidak tersedia',
                     address: customer.address ?? 'Alamat tidak tersedia',
                     sisaPembayaran:
                         'Sisa Pembayaran: Rp. ${glass.price != null && glass.deposit != null ? glass.price! - glass.deposit! : 0}',
