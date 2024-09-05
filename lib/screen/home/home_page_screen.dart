@@ -1,7 +1,7 @@
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/angusuran/menu_angsuran.dart';
 import 'package:anugrah_lens/screen/form-screen/create_new_angsuran.dart';
-import 'package:anugrah_lens/services/customers_services.dart';
+import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/card.dart';
@@ -40,17 +40,18 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: ColorStyle.primaryColor, // Adjust the color as needed
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 35,
-                    backgroundImage: NetworkImage(
+                    backgroundImage: const NetworkImage(
                         'https://img.freepik.com/free-photo/business-finance-employment-female-successful-entrepreneurs-concept-confident-smiling-asian-businesswoman-office-worker-white-suit-glasses-using-laptop-help-clients_1258-59126.jpg?t=st=1724925519~exp=1724929119~hmac=c3b92a7be28ab28deebb3cd42b9755db39ca7267895a35ca60158967930094a2&w=740'), // Replace with your image URL
                   ),
-                  SizedBox(width: 16), // Space between the picture and text
+                  const SizedBox(
+                      width: 16), // Space between the picture and text
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -113,24 +114,23 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
         future: _costumersService.fetchCustomers(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data?.customer == null) {
-            return Center(child: Text('Tidak ada pelanggan'));
+            return const Center(child: Text('Tidak ada pelanggan'));
           }
 
           // Mengambil daftar pelanggan
           List<Customer> customers = snapshot.data!.customer!;
           final CustomersModel customersModel = snapshot.data!;
-          
 
           return Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
+                const Padding(
                   padding: EdgeInsets.all(2.0),
                   child: Text("Anugrah Lens", style: FontFamily.h3),
                 ),
@@ -149,18 +149,13 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => MenuAngsuranScreen(
-                          glass: selectedCustomer.glasses ?? [],
-                          idGlass: selectedGlass!.id ??
-                              '', // Pass the selected glass ID
-                          customersModel: selectedCustomer,
                           idCustomer: selectedCustomer.id ?? '',
-                          // jangan ambilang first tapi sesuai dengan yang di pilih
                         ),
                       ),
                     );
                   },
-                  prefixIcons:
-                      const Icon(Icons.search, color: Color.fromARGB(255, 53, 35, 35)),
+                  prefixIcons: const Icon(Icons.search,
+                      color: Color.fromARGB(255, 53, 35, 35)),
                   suffixIcons: null,
                   controller: name,
                   hintText: 'cari nama pelanggan',
@@ -187,11 +182,7 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => MenuAngsuranScreen(
-                                    glass: customer.glasses ?? [],
-                                    customersModel: customer,
                                     idCustomer: customer.id ?? '',
-                                    idGlass: selectedGlass.id ??
-                                        '', // Pass the selected glass ID
 
                                     // Pass the selected glass ID
                                   ),
@@ -199,7 +190,7 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
+                                const SnackBar(
                                   content: Text(
                                       'No glass available for this customer'),
                                 ),

@@ -4,19 +4,19 @@ import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/widget/card.dart';
 import 'package:flutter/material.dart';
 
-class CashScreen extends StatefulWidget {
+class AngsuranScreen extends StatefulWidget {
   final String idCustomer;
 
-  const CashScreen({
+  const AngsuranScreen({
     super.key,
     required this.idCustomer,
   });
 
   @override
-  State<CashScreen> createState() => _CashScreenState();
+  State<AngsuranScreen> createState() => _AngsuranScreenState();
 }
 
-class _CashScreenState extends State<CashScreen> {
+class _AngsuranScreenState extends State<AngsuranScreen> {
   late Future<CustomerData> customersData;
 
   @override
@@ -40,7 +40,7 @@ class _CashScreenState extends State<CashScreen> {
         } else if (snapshot.hasData) {
           final customer = snapshot.data!.customer!;
           final glasses = customer.glasses
-                  ?.where((glass) => glass.paymentMethod == 'Cash')
+                  ?.where((glass) => glass.paymentMethod == 'Installments')
                   .toList() ??
               [];
           return Padding(
@@ -76,9 +76,7 @@ class _CashScreenState extends State<CashScreen> {
             ),
           );
         } else {
-          return const SizedBox(
-            child: Text("Tidak ada Data"),
-          );
+          return const SizedBox();
         }
       },
     );

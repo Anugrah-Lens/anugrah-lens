@@ -1,4 +1,3 @@
-import 'package:anugrah_lens/models/customersGlasses_model.dart';
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/angusuran/table_angsuran.dart';
 import 'package:anugrah_lens/style/color_style.dart';
@@ -19,7 +18,6 @@ class DetailAngsuranSCreen extends StatefulWidget {
     required this.glass,
     required this.idCustomer,
     required this.idGlass,
-    
   }) : super(key: key);
 
   @override
@@ -219,7 +217,7 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                       MaterialPageRoute(
                         builder: (context) => CreateTableAngsuran(
                           customer: customer,
-                          glasses:  widget.glass,
+                          glasses: widget.glass,
                           glassId: widget.idGlass,
                         ),
                       ),
@@ -234,4 +232,3 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
     );
   }
 }
-

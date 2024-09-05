@@ -1,7 +1,6 @@
-import 'package:anugrah_lens/models/customersGlasses_model.dart';
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/services/add_payment_services.dart';
-import 'package:anugrah_lens/services/customers_services.dart';
+import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:flutter/material.dart';
