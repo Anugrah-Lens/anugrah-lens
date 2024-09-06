@@ -57,6 +57,146 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
     });
   }
 
+  Future<void> _editInstallmentDialog(BuildContext context,
+      String installmentId, int currentAmount, String currentPaidDate) async {
+    final TextEditingController amountController =
+        TextEditingController(text: currentAmount.toString());
+
+    // Pastikan currentPaidDate yang diterima adalah dalam format ISO 8601, lalu ubah ke format yang lebih mudah dibaca
+    DateTime paidDate = DateTime.parse(currentPaidDate);
+    final TextEditingController paidDateController = TextEditingController(
+        text: DateFormat('dd MMMM yyyy')
+            .format(paidDate)); // Format yang diinginkan
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Edit Installment'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                TextField(
+                  controller: amountController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Bayar'),
+                ),
+                TextField(
+                  controller: paidDateController,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    hintText: 'Pilih tanggal',
+                    labelText: 'Tanggal',
+                  ),
+                  onTap: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2101),
+                    );
+
+                    if (pickedDate != null) {
+                      String formattedDate =
+                          DateFormat('dd MMMM yyyy').format(pickedDate);
+                      setState(() {
+                        paidDateController.text = formattedDate;
+                      });
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Tanggal tidak dipilih'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Save'),
+              onPressed: () async {
+                final newAmount = int.tryParse(amountController.text);
+                final newPaidDate = paidDateController.text;
+
+                if (newAmount != null && newPaidDate.isNotEmpty) {
+                  try {
+                    // Tampilkan dialog loading
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext context) {
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    );
+
+                    // Ambil tanggal dari paidDateController
+                    DateTime selectedDate = DateFormat('dd MMMM yyyy')
+                        .parse(paidDateController.text);
+
+                    // Jika server membutuhkan format ISO, kirim dengan format ISO 8601
+                    String paidDate = selectedDate.toUtc().toIso8601String();
+
+                    // Edit installment dan dapatkan pesan dari server
+                    String message = await _paymentService.editInstallment(
+                      installmentId,
+                      newAmount,
+                      paidDate, // Format tanggal yang dikirim ke server
+                    );
+
+                    // Tutup loading dialog
+                    Navigator.of(context).pop();
+
+                    // Tampilkan SnackBar dengan pesan sukses
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    setState(() {
+                      _fetchData();
+                    });
+                    Navigator.of(context).pop();
+                  } catch (e) {
+                    // Tutup loading dialog
+                    Navigator.of(context).pop();
+
+                    // Tampilkan pesan error
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } else {
+                  // Jika input tidak valid, tampilkan pesan error
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Amount dan tanggal tidak boleh kosong'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showAddRowDialog() {
     TextEditingController tanggalController = TextEditingController();
     TextEditingController bayarController = TextEditingController();
@@ -234,146 +374,6 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
     );
   }
 
-  void _showEditRowDialog(int index, String? installmentId) {
-    if (installmentId == null) {
-      print('Error: installmentId is null');
-      return;
-    }
-
-    TextEditingController tanggalController = TextEditingController(
-      text: rows[index]['tanggal'].toString(),
-    );
-    TextEditingController bayarController = TextEditingController(
-      text: rows[index]['bayar'].toString(),
-    );
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Edit Pembayaran'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: tanggalController,
-                readOnly: true,
-                decoration: const InputDecoration(
-                  hintText: 'Pilih tanggal',
-                  labelText: 'Tanggal',
-                ),
-                onTap: () async {
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2101),
-                  );
-
-                  if (pickedDate != null) {
-                    String formattedDate =
-                        DateFormat('dd MMMM yyyy').format(pickedDate);
-                    tanggalController.text = formattedDate;
-                  }
-                },
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: bayarController,
-                decoration: const InputDecoration(
-                  hintText: 'Bayar',
-                  labelText: 'Bayar',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Batal'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Tutup dialog
-              },
-            ),
-            TextButton(
-              child: const Text('Selesai'),
-              onPressed: () async {
-                if (bayarController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content:
-                          Text('Error: Nilai pembayaran tidak boleh kosong'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-
-                int bayar =
-                    int.tryParse(bayarController.text.replaceAll(',', '')) ?? 0;
-                if (bayar <= 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                          'Error: Nilai pembayaran harus lebih besar dari 0'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-
-                try {
-                  // Tampilkan dialog loading
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (BuildContext context) {
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                  );
-
-                  // Ambil tanggal dari pickedDate
-                  DateTime selectedDate =
-                      DateFormat('dd MMMM yyyy').parse(tanggalController.text);
-                  String paidDate = selectedDate.toUtc().toIso8601String();
-
-                  // Edit installment dan dapatkan pesan dari server
-                  String message = await _paymentService.editInstallment(
-                    installmentId,
-                    bayar,
-                    paidDate,
-                  );
-
-                  // Tutup loading dialog
-                  Navigator.of(context).pop();
-
-                  // Tampilkan SnackBar dengan pesan sukses
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(message),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } catch (e) {
-                  // Tutup loading dialog
-                  Navigator.of(context).pop();
-
-                  // Tampilkan pesan error
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final NumberFormat currencyFormatter = NumberFormat('#,##0', 'id');
@@ -459,96 +459,144 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                         scrollDirection: Axis.horizontal,
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
-                              minWidth: MediaQuery.of(context).size.width),
-                          child: DataTable(
-                            headingRowColor: MaterialStateColor.resolveWith(
-                              (states) => ColorStyle.primaryColor,
-                            ),
-                            columns: const <DataColumn>[
-                              DataColumn(
-                                label: Text(
-                                  'No',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'Tanggal',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'Bayar',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'Jumlah',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'Sisa',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  'Aksi',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ],
-                            rows: List<DataRow>.generate(
-                              installment
-                                  .length, // Pastikan ini adalah ukuran yang valid
-                              (index) {
-                                if (index >= installment.length) {
-                                  return const DataRow(cells: []);
-                                }
-                                final installmentData = installment[index];
-                                return DataRow(
-                                  cells: <DataCell>[
-                                    DataCell(Text('${index + 1}')),
-                                    DataCell(
-                                      Text(
-                                        DateFormat('dd MMMM yyyy').format(
-                                          DateTime.parse(
-                                                  installmentData.paidDate)
-                                              .toLocal(),
-                                        ),
+                            minWidth: MediaQuery.of(context).size.width,
+                          ),
+                          child: installment.isEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    height:
+                                        MediaQuery.of(context).size.height / 2,
+                                    child: const Center(
+                                      child:
+                                          Text('No installment data available'),
+                                    ),
+                                  ),
+                                )
+                              : DataTable(
+                                  headingRowColor:
+                                      MaterialStateColor.resolveWith(
+                                    (states) => ColorStyle.primaryColor,
+                                  ),
+                                  columns: const <DataColumn>[
+                                    DataColumn(
+                                      label: Text(
+                                        'No',
+                                        style: TextStyle(color: Colors.white),
                                       ),
                                     ),
-                                    DataCell(
-                                      Text(installmentData.amount?.toString() ??
-                                          'N/A'),
+                                    DataColumn(
+                                      label: Text(
+                                        'Tanggal',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
                                     ),
-                                    DataCell(
-                                      Text(installmentData.total?.toString() ??
-                                          'N/A'),
+                                    DataColumn(
+                                      label: Text(
+                                        'Bayar',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
                                     ),
-                                    DataCell(
-                                      Text(installmentData.remaining
-                                              ?.toString() ??
-                                          'N/A'),
-                                    ), // Sisa
-                                    DataCell(
-                                      IconButton(
-                                        icon: const Icon(Icons.edit),
-                                        onPressed: () {
-                                          _showEditRowDialog(
-                                              index, installmentData.id);
-                                        },
+                                    DataColumn(
+                                      label: Text(
+                                        'Jumlah',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'Sisa',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'Aksi',
+                                        style: TextStyle(color: Colors.white),
                                       ),
                                     ),
                                   ],
-                                );
-                              },
-                            ),
-                          ),
+                                  rows: List<DataRow>.generate(
+                                    installment.length,
+                                    (index) {
+                                      if (index >= installment.length) {
+                                        return const DataRow(cells: []);
+                                      }
+                                      final installmentData =
+                                          installment[index];
+
+                                      // Pastikan installmentData tidak null
+                                      if (installmentData == null) {
+                                        return const DataRow(cells: [
+                                          DataCell(Text('No installment data')),
+                                        ]);
+                                      }
+
+                                      return DataRow(
+                                        cells: <DataCell>[
+                                          DataCell(Text('${index + 1}')),
+                                          DataCell(
+                                            Text(
+                                              DateFormat('dd MMMM yyyy').format(
+                                                DateTime.parse(installmentData
+                                                        .paidDate)
+                                                    .toLocal(),
+                                              ),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            /// buat currencyFormatter
+                                            SizedBox(
+                                              width: 80,
+                                              child: Text(
+                                                  currencyFormatter.format(
+                                                      installmentData.amount ??
+                                                          0)),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            /// buat currencyFormatter
+                                            SizedBox(
+                                              width: 80,
+                                              child: Text(
+                                                  currencyFormatter.format(
+                                                      installmentData.total ??
+                                                          0)),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            SizedBox(
+                                              width: 80,
+                                              child: Text(
+                                                  // buat number formatter untuk mengubah angka ke format mata uang
+                                                  currencyFormatter.format(
+                                                      installmentData
+                                                              .remaining ??
+                                                          0)),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            IconButton(
+                                              icon: const Icon(Icons.edit),
+                                              onPressed: () {
+                                                _editInstallmentDialog(
+                                                  context,
+                                                  installmentData
+                                                      .id, // ID installment
+                                                  installmentData
+                                                      .amount!, // current amount
+                                                  installmentData
+                                                      .paidDate, // current paidDate
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
                         ),
                       ),
                     ),

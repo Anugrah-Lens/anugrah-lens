@@ -135,7 +135,7 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                   child: Text("Anugrah Lens", style: FontFamily.h3),
                 ),
                 const SizedBox(height: 10.0),
-                SearchDropdownField(
+                SearchDropdownFieldHome(
                   onSelected: (String selectedName) {
                     // Memastikan navigasi hanya terjadi jika nama dipilih dari dropdown
                     Customer? selectedCustomer = customers

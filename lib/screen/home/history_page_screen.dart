@@ -39,7 +39,7 @@ class _RiwayatPageScreenState extends State<RiwayatPageScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 10.0),
-                SearchDropdownField(
+                SearchDropdownFieldHome(
                   prefixIcons:
                       const Icon(Icons.search, color: ColorStyle.disableColor),
                   suffixIcons: null,

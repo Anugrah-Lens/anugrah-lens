@@ -99,7 +99,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
   }
 }
 
-class SearchDropdownField extends StatefulWidget {
+class SearchDropdownFieldHome extends StatefulWidget {
   final List<String> items;
   final String hintText;
   final TextEditingController? controller;
@@ -108,7 +108,7 @@ class SearchDropdownField extends StatefulWidget {
   final ValueChanged<String>? onChange;
   final ValueChanged<String>? onSelected;
 
-  const SearchDropdownField(
+  const SearchDropdownFieldHome(
       {Key? key,
       required this.items,
       required this.hintText,
@@ -120,10 +120,11 @@ class SearchDropdownField extends StatefulWidget {
       : super(key: key);
 
   @override
-  _SearchDropdownFieldState createState() => _SearchDropdownFieldState();
+  _SearchDropdownFieldHomeState createState() =>
+      _SearchDropdownFieldHomeState();
 }
 
-class _SearchDropdownFieldState extends State<SearchDropdownField> {
+class _SearchDropdownFieldHomeState extends State<SearchDropdownFieldHome> {
   late TextEditingController _controller;
 
   @override
@@ -296,10 +297,142 @@ class _TextFieldColumnWigetState extends State<TextFieldColumnWiget> {
         inputFormatters: widget.inputFormatters,
         controller: widget.controller,
         onChanged: (value) {
-          widget.onChanged!(value); // Pastikan onChanged tidak menyebabkan controller direset
+          widget.onChanged!(
+              value); // Pastikan onChanged tidak menyebabkan controller direset
         },
         decoration: InputDecoration(hintText: widget.hintText),
       ),
+    );
+  }
+}
+
+class SearchDropdownField extends StatefulWidget {
+  final List<String> items;
+  final String hintText;
+  final TextEditingController? controller;
+  final Widget? suffixIcons;
+  final Widget? prefixIcons;
+  final ValueChanged<String>? onChange;
+  final ValueChanged<String>? onSelected;
+
+  const SearchDropdownField({
+    Key? key,
+    required this.items,
+    required this.hintText,
+    this.controller,
+    this.onChange,
+    this.onSelected,
+    this.prefixIcons,
+    this.suffixIcons,
+  }) : super(key: key);
+
+  @override
+  _SearchDropdownFieldState createState() => _SearchDropdownFieldState();
+}
+
+class _SearchDropdownFieldState extends State<SearchDropdownField> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) {
+      _controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Autocomplete<String>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) {
+          return const Iterable<String>.empty();
+        }
+        return widget.items.where((String item) {
+          return item
+              .toLowerCase()
+              .contains(textEditingValue.text.toLowerCase());
+        });
+      },
+      onSelected: (String selection) {
+        _controller.text = selection; // Update text field with selected option
+        if (widget.onSelected != null) {
+          widget.onSelected!(selection);
+        }
+      },
+      fieldViewBuilder: (BuildContext context,
+          TextEditingController textEditingController,
+          FocusNode focusNode,
+          VoidCallback onFieldSubmitted) {
+        return TextField(
+          controller: textEditingController,
+          focusNode: focusNode,
+          onChanged: (value) {
+            if (widget.onChange != null) {
+              widget.onChange!(value);
+            }
+          },
+          decoration: InputDecoration(
+            hintText: widget.hintText,
+            hintStyle: FontFamily.caption.copyWith(
+              color: ColorStyle.disableColor,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(
+                color:
+                    ColorStyle.disableColor, // Warna stroke ketika tidak fokus
+                width: 1.5, // Lebar stroke
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(
+                color: ColorStyle.primaryColor, // Warna stroke ketika fokus
+                width: 1.5, // Lebar stroke ketika fokus
+              ),
+            ),
+            prefixIcon: widget.prefixIcons,
+            suffixIcon: widget.suffixIcons,
+          ),
+        );
+      },
+      optionsViewBuilder: (BuildContext context, Function(String) onSelected,
+          Iterable<String> options) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: Material(
+              child: Container(
+                color: ColorStyle.accentColor,
+                height: 400,
+                width: 300,
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(8.0),
+                  itemCount: options.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    final String option = options.elementAt(index);
+                    return ListTile(
+                      title: Text(option),
+                      onTap: () {
+                        onSelected(
+                            option); // Call onSelected when an option is tapped
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
