@@ -1,5 +1,4 @@
 import 'package:anugrah_lens/models/customer_data_model.dart';
-import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/services/add_payment_services.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
@@ -45,7 +44,10 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
   @override
   void initState() {
     super.initState();
-    /////////// fetch data customer ////////////////
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
     customersData = CostumersService().fetchCustomerById(widget.idCustomer);
 
     rows.sort((a, b) {
@@ -53,7 +55,6 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
       DateTime dateB = DateFormat('dd MMMM yyyy').parse(b['tanggal']);
       return dateA.compareTo(dateB);
     });
-    // Convert and sort the rows based on the 'tanggal' field
   }
 
   void _showAddRowDialog() {
@@ -180,87 +181,50 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                       return const Center(child: CircularProgressIndicator());
                     },
                   );
-
                   // Ambil tanggal dari pickedDate
                   DateTime selectedDate =
                       DateFormat('dd MMMM yyyy').parse(tanggalController.text);
                   String paidDate = selectedDate.toUtc().toIso8601String();
 
                   // Mengirim data ke backend untuk menambahkan installment
-                  Map<String, dynamic> paymentData = await _paymentService
-                      .addPaymentDataAmount(bayar, glassId, paidDate);
-                  print("Payment data response: $paymentData");
-                  // Jika berhasil
-                  if (paymentData['success']) {
-                    CustomersModel customersModel =
-                        await _customersService.fetchCustomers();
-                    // Ambil data installment yang baru ditambahkan
-                    final customer = customersModel.customer?.firstWhere((c) =>
-                        c.glasses?.any((g) => g.id == widget.glassId) == true);
+                  var result = await _paymentService.addPaymentDataAmount(
+                      bayar, glassId, paidDate);
 
-                    if (customer != null) {
-                      final glass = customer.glasses
-                          ?.firstWhere((g) => g.id == widget.glassId);
-                      if (glass != null) {
-                        setState(() {
-                          rows = glass.installments
-                                  ?.asMap()
-                                  .entries
-                                  .map((entry) {
-                                int index =
-                                    entry.key + 1; // +1 agar nomor mulai dari 1
-                                var installment = entry.value;
-                                return {
-                                  'no': index.toString(),
-                                  'id': installment.id,
-                                  'tanggal': DateFormat('dd MMMM yyyy').format(
-                                      DateTime.parse(installment.paidDate!)
-                                          .add(const Duration(hours: 7))),
-                                  'bayar': installment.amount.toString(),
-                                  'jumlah': installment.total.toString(),
-                                  'sisa': installment.remaining.toString(),
-                                  'isEditing': false,
-                                };
-                              }).toList() ??
-                              [];
-                          rows.sort((a, b) {
-                            DateTime dateA =
-                                DateFormat('dd MMMM yyyy').parse(a['tanggal']);
-                            DateTime dateB =
-                                DateFormat('dd MMMM yyyy').parse(b['tanggal']);
-                            return dateA.compareTo(dateB);
-                          });
-                        });
-                      }
-                      // Menampilkan Snackbar
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(paymentData['message']),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                      print("Total: ${paymentData['total']}");
-                      // Perbarui data customer dan tutup dialog add
-                    }
+                  // close loading dialog
+                  Navigator.of(context).pop();
 
-                    Navigator.of(context).pop(); // Tutup dialog add
-                  } else {
-                    // Menampilkan error jika tidak berhasil
+                  if (result['success']) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(paymentData['message']),
+                        content:
+                            Text(result['message'] ?? 'Pembayaran berhasil'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    setState(() {
+                      _fetchData();
+                    });
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(result['message'] ?? 'Pembayaran gagal'),
                         backgroundColor: Colors.red,
                       ),
                     );
                   }
 
-                  Navigator.of(context).pop(); // Tutup dialog loading
+                  // Tutup dialog setelah berhasil
+                  Navigator.of(context).pop();
                 } catch (e) {
-                  // Menangani error
-                  Navigator.of(context).pop(); // Tutup dialog loading
+                  // close loading dialog
+                  Navigator.of(context).pop();
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error: $e')),
                   );
+
+                  // close dialog
+                  Navigator.of(context).pop();
                 }
               },
             ),
@@ -275,6 +239,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
       print('Error: installmentId is null');
       return;
     }
+
     TextEditingController tanggalController = TextEditingController(
       text: rows[index]['tanggal'].toString(),
     );
@@ -304,15 +269,11 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2101),
                   );
-                  print(pickedDate);
 
                   if (pickedDate != null) {
                     String formattedDate =
                         DateFormat('dd MMMM yyyy').format(pickedDate);
-                    print(formattedDate);
-                    setState(() {
-                      tanggalController.text = formattedDate;
-                    });
+                    tanggalController.text = formattedDate;
                   }
                 },
               ),
@@ -331,7 +292,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
             TextButton(
               child: const Text('Batal'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Tutup dialog
               },
             ),
             TextButton(
@@ -362,6 +323,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                 }
 
                 try {
+                  // Tampilkan dialog loading
                   showDialog(
                     context: context,
                     barrierDismissible: false,
@@ -375,34 +337,34 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                       DateFormat('dd MMMM yyyy').parse(tanggalController.text);
                   String paidDate = selectedDate.toUtc().toIso8601String();
 
+                  // Edit installment dan dapatkan pesan dari server
                   String message = await _paymentService.editInstallment(
-                    
-                      installmentId, bayar, paidDate);
-                  setState(() {
-                    customersData =
-                        CostumersService().fetchCustomerById(widget.idCustomer);
-                  });
+                    installmentId,
+                    bayar,
+                    paidDate,
+                  );
 
-                  // Menampilkan Snackbar dengan pesan dari response
+                  // Tutup loading dialog
+                  Navigator.of(context).pop();
+
+                  // Tampilkan SnackBar dengan pesan sukses
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(message),
                       backgroundColor: Colors.green,
                     ),
                   );
-
-                  Navigator.of(context).pop(); // Tutup dialog loading
-                  Navigator.of(context).pop(); // Tutup dialog edit
                 } catch (e) {
-                  print('Failed to save changes: $e');
+                  // Tutup loading dialog
+                  Navigator.of(context).pop();
+
+                  // Tampilkan pesan error
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Error: $e'),
                       backgroundColor: Colors.red,
                     ),
                   );
-
-                  Navigator.of(context).pop(); // Tutup dialog loading
                 }
               },
             ),
@@ -445,8 +407,6 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
             /// ambil data installment dari glasses ///
             final installment =
                 glasses.expand((glass) => glass.installments ?? []).toList();
-
-            /// tampilkan data ///
 
             if (installment.isEmpty) {
               return Padding(
@@ -543,18 +503,17 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                               ),
                             ],
                             rows: List<DataRow>.generate(
-                              installment.length,
+                              installment
+                                  .length, // Pastikan ini adalah ukuran yang valid
                               (index) {
+                                if (index >= installment.length) {
+                                  return const DataRow(cells: []);
+                                }
                                 final installmentData = installment[index];
                                 return DataRow(
                                   cells: <DataCell>[
                                     DataCell(Text('${index + 1}')),
                                     DataCell(
-                                      // Text(
-                                      //   DateFormat('dd MMMM yyyy').format(
-                                      //       DateTime.parse(installment.paidDate)
-                                      //           .add(const Duration(hours: 7))),
-                                      // ),
                                       Text(
                                         DateFormat('dd MMMM yyyy').format(
                                           DateTime.parse(
@@ -577,20 +536,12 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                                           'N/A'),
                                     ), // Sisa
                                     DataCell(
-                                      Row(
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(Icons.edit),
-                                            onPressed: () {
-                                              _showEditRowDialog(
-                                                  index, installmentData.id);
-                                            },
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.delete),
-                                            onPressed: () {},
-                                          ),
-                                        ],
+                                      IconButton(
+                                        icon: const Icon(Icons.edit),
+                                        onPressed: () {
+                                          _showEditRowDialog(
+                                              index, installmentData.id);
+                                        },
                                       ),
                                     ),
                                   ],
@@ -609,10 +560,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.end,
-                        children:
-
-                            /// buat apabila paymentStatus = Paid maka hilang kontainernya
-                            glasses.map(
+                        children: glasses.map(
                           (glass) {
                             return glass.paymentStatus == 'Paid'
                                 ? const SizedBox()

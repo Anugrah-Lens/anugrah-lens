@@ -1,4 +1,4 @@
-import 'package:anugrah_lens/screen/angusuran/menu_angsuran.dart';
+import 'package:anugrah_lens/screen/angsuran/menu_angsuran.dart';
 import 'package:anugrah_lens/screen/form-screen/create_new_angsuran.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';

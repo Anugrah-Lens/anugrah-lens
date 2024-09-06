@@ -23,8 +23,6 @@ class PaymentService {
       if (response.statusCode == 200) {
         return {
           'success': true,
-          'total': response.data['installment']['total'],
-          'remaining': response.data['installment']['remaining'],
           'message': response.data['message'], // Pesan sukses dari server
         };
       } else if (response.statusCode == 400) {

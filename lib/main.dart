@@ -1,6 +1,6 @@
-import 'package:anugrah_lens/screen/angusuran/detail_angsuran_screen.dart';
-import 'package:anugrah_lens/screen/angusuran/menu_angsuran.dart';
-import 'package:anugrah_lens/screen/angusuran/table_angsuran.dart';
+import 'package:anugrah_lens/screen/angsuran/detail_angsuran_screen.dart';
+import 'package:anugrah_lens/screen/angsuran/menu_angsuran.dart';
+import 'package:anugrah_lens/screen/angsuran/table_angsuran.dart';
 import 'package:anugrah_lens/screen/form-screen/create_new_angsuran.dart';
 import 'package:anugrah_lens/screen/home/bottom_screen.dart';
 import 'package:anugrah_lens/screen/login/login_screen.dart';

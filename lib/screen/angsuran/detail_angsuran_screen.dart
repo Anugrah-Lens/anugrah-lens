@@ -1,5 +1,5 @@
 import 'package:anugrah_lens/models/customer_data_model.dart';
-import 'package:anugrah_lens/screen/angusuran/table_angsuran.dart';
+import 'package:anugrah_lens/screen/angsuran/table_angsuran.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';

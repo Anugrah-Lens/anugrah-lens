@@ -1,8 +1,8 @@
 // ignore_for_file: unnecessary_null_comparison
 
-import 'package:anugrah_lens/screen/angusuran/angsuran_screen.dart';
-import 'package:anugrah_lens/screen/angusuran/cash_screen.dart';
-import 'package:anugrah_lens/screen/angusuran/selesai_screen.dart';
+import 'package:anugrah_lens/screen/angsuran/angsuran_screen.dart';
+import 'package:anugrah_lens/screen/angsuran/cash_screen.dart';
+import 'package:anugrah_lens/screen/angsuran/selesai_screen.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:flutter/material.dart';
