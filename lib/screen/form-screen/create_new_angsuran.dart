@@ -5,7 +5,6 @@ import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/Button_widget.dart';
-import 'package:anugrah_lens/widget/formatters_widget.dart';
 import 'package:anugrah_lens/widget/radio_button_widget.dart';
 import 'package:anugrah_lens/widget/text_widget.dart';
 import 'package:anugrah_lens/widget/textfield_widget.dart';
@@ -104,12 +103,6 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                         const TitleTextWIdget(
                           name: 'Nama Pelanggan',
                         ),
-                        // TextFieldWidget(
-                        //   controller: nameController,
-                        //   hintText: 'e.g. Thiyara',
-                        // ),
-                        // Inside your StatefulWidget's build method
-
                         SearchDropdownField(
                           onSelected: (String name) {
                             setState(() {
@@ -118,7 +111,9 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                             });
                           },
                           onChange: (String value) {
-                            // Optional: Lakukan sesuatu saat input berubah
+                            setState(() {
+                              nameController.text = value;
+                            });
                           },
                           controller: nameController,
                           hintText: 'Cari nama pelanggan',
@@ -127,7 +122,6 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                           suffixIcons: const Icon(Icons.arrow_drop_down,
                               color: ColorStyle.primaryColor),
                         ),
-
                         const SizedBox(height: 4.0),
                         const TitleTextWIdget(
                           name: 'No Telepon',
@@ -336,7 +330,7 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
 
                               // Parsing input values
                               final String customerName =
-                                  nameController.text.trim();
+                                  nameController.text.trim(); //
                               final String phone = phoneController.text;
                               final String address = addressController.text;
                               final String frame = frameController.text;
@@ -412,8 +406,7 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                               Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      BerandaPageScreen(),
+                                  builder: (context) => BerandaPageScreen(),
                                 ),
                                 (route) => false,
                               );

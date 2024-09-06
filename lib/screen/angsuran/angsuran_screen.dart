@@ -7,10 +7,12 @@ import 'package:flutter/material.dart';
 
 class AngsuranScreen extends StatefulWidget {
   final String idCustomer;
+  final String customerName;
 
   const AngsuranScreen({
     super.key,
     required this.idCustomer,
+    required this.customerName,
   });
 
   @override
@@ -72,11 +74,13 @@ class _AngsuranScreenState extends State<AngsuranScreen> {
                           builder: (context) => DetailAngsuranSCreen(
                             idGlass: glass.id.toString(),
                             idCustomer: widget.idCustomer,
+                            customerName: widget.customerName,
                           ),
                         ),
                       );
                     },
-                    label: glass.paymentMethod ?? 'Metode pembayaran tidak tersedia',
+                    label: glass.paymentMethod ??
+                        'Metode pembayaran tidak tersedia',
                     address: customer.address ?? 'Alamat tidak tersedia',
                     sisaPembayaran:
                         'Sisa Pembayaran: Rp. ${glass.price != null && glass.deposit != null ? glass.price! - glass.deposit! : 0}',

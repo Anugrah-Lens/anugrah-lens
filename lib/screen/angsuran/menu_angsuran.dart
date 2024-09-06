@@ -9,10 +9,12 @@ import 'package:flutter/material.dart';
 
 class MenuAngsuranScreen extends StatefulWidget {
   final String idCustomer;
+  final String customerName;
 
   MenuAngsuranScreen({
     Key? key,
     required this.idCustomer,
+    required this.customerName,
   }) : super(key: key);
 
   @override
@@ -46,7 +48,10 @@ class _MenuAngsuranScreenState extends State<MenuAngsuranScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Pelanggan", style: FontFamily.title),
+        title: Text(
+          widget.customerName,
+          style: FontFamily.title,
+        ),
       ),
       body: ListView(
         children: [
@@ -63,14 +68,19 @@ class _MenuAngsuranScreenState extends State<MenuAngsuranScreen> {
           if (isAngsuranActive)
             AngsuranScreen(
               idCustomer: widget.idCustomer,
+              customerName: widget.customerName,
             )
           else if (isCashActive)
             CashScreen(
               idCustomer: widget.idCustomer,
+              customerName: widget.customerName,
+
             )
           else if (isSelesaiActive)
             SelesaiScreen(
               idCustomer: widget.idCustomer,
+              customerName: widget.customerName,
+
             ),
         ],
       ),

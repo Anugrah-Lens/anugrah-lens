@@ -10,11 +10,13 @@ import 'package:flutter/material.dart';
 class DetailAngsuranSCreen extends StatefulWidget {
   final String idCustomer;
   final String idGlass;
+  final String customerName;
 
   DetailAngsuranSCreen({
     Key? key,
     required this.idCustomer,
     required this.idGlass,
+    required this.customerName,
   }) : super(key: key);
 
   @override
@@ -42,7 +44,7 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Pelanggan Baru',
+          widget.customerName,
           style: FontFamily.subtitle.copyWith(color: ColorStyle.secondaryColor),
         ),
       ),

@@ -1,6 +1,4 @@
 import 'package:anugrah_lens/models/customer_data_model.dart';
-import 'package:anugrah_lens/models/customersGlasses_model.dart';
-import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/angsuran/detail_angsuran_screen.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
@@ -9,10 +7,12 @@ import 'package:flutter/material.dart';
 
 class SelesaiScreen extends StatefulWidget {
   final String idCustomer;
+  final String customerName;
 
   SelesaiScreen({
     Key? key,
     required this.idCustomer,
+    required this.customerName,
   }) : super(key: key);
 
   @override
@@ -73,6 +73,7 @@ class _SelesaiScreenState extends State<SelesaiScreen> {
                           builder: (context) => DetailAngsuranSCreen(
                             idGlass: glass.id.toString(),
                             idCustomer: widget.idCustomer,
+                            customerName: widget.customerName,
                           ),
                         ),
                       );

@@ -7,10 +7,12 @@ import 'package:flutter/material.dart';
 
 class CashScreen extends StatefulWidget {
   final String idCustomer;
+  final String customerName;
 
   const CashScreen({
     super.key,
     required this.idCustomer,
+    required this.customerName,
   });
 
   @override
@@ -72,6 +74,7 @@ class _CashScreenState extends State<CashScreen> {
                           builder: (context) => DetailAngsuranSCreen(
                             idGlass: glass.id.toString(),
                             idCustomer: widget.idCustomer,
+                            customerName: widget.customerName,
                           ),
                         ),
                       );

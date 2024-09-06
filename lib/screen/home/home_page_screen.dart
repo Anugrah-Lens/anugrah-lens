@@ -123,7 +123,6 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
 
           // Mengambil daftar pelanggan
           List<Customer> customers = snapshot.data!.customer!;
-          final CustomersModel customersModel = snapshot.data!;
 
           return Padding(
             padding: const EdgeInsets.all(20.0),
@@ -140,16 +139,13 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                     // Memastikan navigasi hanya terjadi jika nama dipilih dari dropdown
                     Customer? selectedCustomer = customers
                         .firstWhere((element) => element.name == selectedName);
-                    Glass? selectedGlass =
-                        selectedCustomer.glasses?.isNotEmpty == true
-                            ? selectedCustomer.glasses!.first
-                            : null;
 
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => MenuAngsuranScreen(
                           idCustomer: selectedCustomer.id ?? '',
+                          customerName: selectedCustomer.name ?? '',
                         ),
                       ),
                     );
@@ -183,6 +179,7 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                                 MaterialPageRoute(
                                   builder: (context) => MenuAngsuranScreen(
                                     idCustomer: customer.id ?? '',
+                                    customerName: customer.name ?? '',
 
                                     // Pass the selected glass ID
                                   ),
