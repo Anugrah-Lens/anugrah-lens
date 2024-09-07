@@ -42,11 +42,13 @@ class _AngsuranScreenState extends State<AngsuranScreen> {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
           final customer = snapshot.data!.customer!;
+// glasses yang paymentMethod = Installments dan paymentStatus = Unpaid
+          final glasses = customer.glasses!
+              .where((glass) =>
+                  glass.paymentMethod == 'Installments' &&
+                  glass.paymentStatus == 'Unpaid')
+              .toList();
 
-          final glasses = customer.glasses
-                  ?.where((glass) => glass.paymentMethod == 'Installments')
-                  .toList() ??
-              [];
           if (glasses.isEmpty) {
             return Padding(
               padding: const EdgeInsets.all(8.0),

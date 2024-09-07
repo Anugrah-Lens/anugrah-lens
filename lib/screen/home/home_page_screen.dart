@@ -124,6 +124,13 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
           // Mengambil daftar pelanggan
           List<Customer> customers = snapshot.data!.customer!;
 
+          /// tampilkan daftar pelanggan yang paymenStatus = Unpaid
+          /// diambil dariu data customer.glasses.paymentStatus
+          customers = customers
+              .where((element) => element.glasses!
+                  .any((element) => element.paymentStatus == 'Unpaid'))
+              .toList();
+
           return Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(

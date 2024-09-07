@@ -200,8 +200,7 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
           idCustomer: widget.idCustomer,
           glassId: widget.glassId,
           name: nameController.text,
-          phone: int.parse(
-              phoneController.text), // Pastikan validasi nomor telepon
+          phone: phoneController.text,
           address: addressController.text,
           frame: frameController.text,
           lensType: lensTypeController.text,

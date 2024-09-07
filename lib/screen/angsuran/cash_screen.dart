@@ -42,10 +42,11 @@ class _CashScreenState extends State<CashScreen> {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
           final customer = snapshot.data!.customer!;
-          final glasses = customer.glasses
-                  ?.where((glass) => glass.paymentMethod == 'Cash')
-                  .toList() ??
-              [];
+            final glasses = customer.glasses!
+              .where((glass) =>
+                  glass.paymentMethod == 'Cash' &&
+                  glass.paymentStatus == 'Unpaid')
+              .toList();
           if (glasses.isEmpty) {
             return Padding(
               padding: const EdgeInsets.all(8.0),

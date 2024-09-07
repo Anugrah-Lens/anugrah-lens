@@ -6,7 +6,7 @@ class CustomerService {
 
   Future<String> addCustomer({
     required String name,
-    required int phone,
+    required String phone,
     required String address,
     required String frame,
     required String lensType,

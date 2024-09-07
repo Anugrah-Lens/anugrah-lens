@@ -8,7 +8,7 @@ class CustomersService {
     required String idCustomer,
     required String glassId,
     required String name,
-    required int phone,
+    required String phone,
     required String address,
     required String frame,
     required String lensType,
