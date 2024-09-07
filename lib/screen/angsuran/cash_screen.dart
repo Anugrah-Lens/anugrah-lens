@@ -75,7 +75,7 @@ class _CashScreenState extends State<CashScreen> {
                             idGlass: glass.id.toString(),
                             idCustomer: widget.idCustomer,
                             customerName: widget.customerName,
-                          ),
+                          ),  
                         ),
                       );
                     },

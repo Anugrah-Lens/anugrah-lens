@@ -436,3 +436,64 @@ class _SearchDropdownFieldState extends State<SearchDropdownField> {
     );
   }
 }
+
+class TextFormFieldWidget extends StatefulWidget {
+  final TextEditingController? controller;
+  final String? Function(String?)? validator;
+  final VoidCallback? onTap;
+  final bool? readOnly; // Tambahkan parameter readOnly
+  final double? width;
+
+  const TextFormFieldWidget({
+    super.key,
+    this.controller,
+    this.validator,
+    this.width,
+    this.onTap,
+    this.readOnly, // Inisialisasi parameter readOnly
+  });
+
+  @override
+  State<TextFormFieldWidget> createState() => _TextFormFieldWidgetState();
+}
+
+class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+
+      width: widget.width ?? double.infinity,
+      child: TextFormField(
+        controller: widget.controller,
+        keyboardType: TextInputType.text,
+        decoration: InputDecoration(
+          labelText: null,
+          hintText: null,
+          hintStyle: FontFamily.caption.copyWith(
+            // Sesuaikan dengan FontFamily Anda
+            color: ColorStyle.disableColor,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(
+              color: ColorStyle.disableColor, // Warna border ketika tidak fokus
+              width: 1.5, // Lebar border ketika tidak fokus
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(
+              color: ColorStyle.primaryColor, // Warna border ketika fokus
+              width: 1.5, // Lebar border ketika fokus
+            ),
+          ),
+        ),
+        validator: widget.validator,
+      
+        // Jika nilai widget.readOnly diberikan, gunakan itu. Jika null, maka gunakan false sebagai default
+        readOnly: widget.readOnly ?? false,
+        onTap: widget.onTap,
+      ),
+    );
+  }
+}

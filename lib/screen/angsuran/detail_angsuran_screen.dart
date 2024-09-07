@@ -1,4 +1,5 @@
 import 'package:anugrah_lens/models/customer_data_model.dart';
+import 'package:anugrah_lens/screen/angsuran/edit_data_customers.dart';
 import 'package:anugrah_lens/screen/angsuran/table_angsuran.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
@@ -60,10 +61,8 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
             final customer = snapshot.data!.customer!;
-            final glasses = customer.glasses
-                    ?.where((glass) => glass.paymentMethod == 'Installments')
-                    .toList() ??
-                [];
+            // ambil data glasses dari customer.Glasses semuanya
+            final glasses = customer.glasses ?? [];
 
             /// seletedGlass dibambi dari customer.glasses yang sama dengan idGlass bukan yang pertam
             final selectedGlass = glasses.firstWhere(
@@ -92,7 +91,54 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const TitleTextWIdget(name: 'Nama Pelanggan'),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              TitleTextWIdget(name: 'Nama Pelanggan'),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.edit,
+                                  color: ColorStyle.secondaryColor,
+                                ),
+                                onPressed: () {
+                                  /// buat fungsi untuk edit data customer disini dan bawa data customer
+                                  /// ke form edit customer
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          EditDataCustomersScreen(
+                                        glassId: selectedGlass.id.toString(),
+                                        deliveryDate: selectedGlass.deliveryDate
+                                            .toString(),
+                                        orderDate:
+                                            selectedGlass.orderDate.toString(),
+                                        price: selectedGlass.price.toString(),
+                                        deposit:
+                                            selectedGlass.deposit.toString(),
+                                        paymentMethod: selectedGlass
+                                            .paymentMethod
+                                            .toString(),
+                                        paymentStatus: selectedGlass
+                                            .paymentStatus
+                                            .toString(),
+                                        frame: selectedGlass.frame.toString(),
+                                        lensType:
+                                            selectedGlass.lensType.toString(),
+                                        leftEye: selectedGlass.left.toString(),
+                                        rightEye:
+                                            selectedGlass.right.toString(),
+                                        name: customer.name.toString(),
+                                        address: customer.address.toString(),
+                                        phone: customer.phone.toString(),
+                                        idCustomer: widget.idCustomer,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                           Padding(
                             padding: EdgeInsets.all(2.0),
                             child: Text(

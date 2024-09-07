@@ -122,6 +122,7 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                           suffixIcons: const Icon(Icons.arrow_drop_down,
                               color: ColorStyle.primaryColor),
                         ),
+                        
                         const SizedBox(height: 4.0),
                         const TitleTextWIdget(
                           name: 'No Telepon',
