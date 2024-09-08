@@ -1,3 +1,4 @@
+import 'package:anugrah_lens/firebase_options.dart';
 import 'package:anugrah_lens/screen/angsuran/detail_angsuran_screen.dart';
 import 'package:anugrah_lens/screen/angsuran/menu_angsuran.dart';
 import 'package:anugrah_lens/screen/angsuran/table_angsuran.dart';
@@ -6,10 +7,15 @@ import 'package:anugrah_lens/screen/home/bottom_screen.dart';
 import 'package:anugrah_lens/screen/login/login_screen.dart';
 import 'package:anugrah_lens/screen/test.dart';
 import 'package:anugrah_lens/screen/testr.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -19,15 +25,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.white, // Warna dasar putih
-          brightness: Brightness.light, // Mengatur tampilan terang
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.white, // Warna dasar putih
+            brightness: Brightness.light, // Mengatur tampilan terang
+          ),
         ),
-      ),
-      home: FirstScreen(),
-    );
+        home: LoginScreen());
   }
 }

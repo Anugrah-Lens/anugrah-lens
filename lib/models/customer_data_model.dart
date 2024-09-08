@@ -39,7 +39,7 @@ class Customer {
   String? id;
   String? name;
   String? address;
-  int? phone;
+  String? phone;
   List<Glass>? glasses;
 
   Customer({

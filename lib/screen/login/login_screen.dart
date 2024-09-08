@@ -3,7 +3,9 @@ import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/Button_widget.dart';
 import 'package:anugrah_lens/widget/circle_background_pointer.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({Key? key}) : super(key: key);
@@ -12,17 +14,39 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+Future<UserCredential?> signInWithGoogle() async {
+  try {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    if (googleUser == null) {
+      // Pengguna membatalkan login
+      return null;
+    }
+
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    return await FirebaseAuth.instance.signInWithCredential(credential);
+  } catch (e) {
+    print('Error during Google Sign-In: $e');
+    return null;
+  }
+}
+
 class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorStyle.whiteColors,
       body: Center(
-        
         child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: CircleBackgroundWidget(
-              color: Color.fromARGB(255, 215, 228, 194), // Warna custom untuk lingkaran
+              color: Color.fromARGB(
+                  255, 215, 228, 194), // Warna custom untuk lingkaran
               topRightRadius:
                   120.0, // Radius custom untuk lingkaran di pojok kanan atas
               bottomLeftRadius: 180.0, // Radius custom untuk lingkaran di bawah
@@ -49,13 +73,30 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 40),
                   ElevatedButtonWidget(
-                      text: "Login with Google Account", onPressed: () {
-                        //navigator ke firstscreen
-                        Navigator.pushReplacement(context,
-                            MaterialPageRoute(builder: (context) {
-                          return const FirstScreen();
-                        }));
-                      })
+                    text: "Login with Google Account",
+                    onPressed: () {
+                      /// cretae sign in with google jika berhasil navigate ke first screen
+                      signInWithGoogle().then((value) {
+                        if (value != null) {
+                          print("Login berhasil, user: ${value.user?.email}");
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const FirstScreen(activeScreen: 0),
+                            ),
+                          );
+                        } else {
+                          print("Login gagal");
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content:
+                                    Text('Login gagal, silakan coba lagi.')),
+                          );
+                        }
+                      });
+                    },
+                  )
                 ],
               ),
             )),

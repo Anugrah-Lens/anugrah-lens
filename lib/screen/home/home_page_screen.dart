@@ -1,12 +1,15 @@
 import 'package:anugrah_lens/models/customers_model.dart';
+import 'package:anugrah_lens/preferences/preferences_helper.dart';
 import 'package:anugrah_lens/screen/angsuran/menu_angsuran.dart';
 import 'package:anugrah_lens/screen/form-screen/create_new_angsuran.dart';
+import 'package:anugrah_lens/screen/login/login_screen.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/card.dart';
 import 'package:anugrah_lens/widget/floating_action_button_widget.dart';
 import 'package:anugrah_lens/widget/textfield_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class BerandaPageScreen extends StatefulWidget {
@@ -19,6 +22,22 @@ class BerandaPageScreen extends StatefulWidget {
 class _BerandaPageScreenState extends State<BerandaPageScreen> {
   final CostumersService _costumersService = CostumersService();
   final TextEditingController name = TextEditingController();
+
+  Future<void> _handleSignOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      await UserPreferences.clearPreferences();
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+        (Route<dynamic> route) => false,
+      );
+    } catch (error) {
+      print('Sign out failed: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sign out failed: $error')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,8 +97,7 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                   style: FontFamily.caption
                       .copyWith(color: ColorStyle.primaryColor)),
               onTap: () {
-                Navigator.pop(context);
-                // Navigate to the Beranda screen
+                _handleSignOut();
               },
             ),
             ListTile(
@@ -103,8 +121,8 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                   style: FontFamily.caption
                       .copyWith(color: ColorStyle.primaryColor)),
               onTap: () {
-                Navigator.pop(context);
-                // Add logic for logout
+                // logout user firebase
+                // Navigate to the Login screen
               },
             ),
           ],
