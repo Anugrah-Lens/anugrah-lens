@@ -1,5 +1,4 @@
 import 'package:anugrah_lens/models/customers_model.dart';
-import 'package:anugrah_lens/preferences/preferences_helper.dart';
 import 'package:anugrah_lens/screen/angsuran/menu_angsuran.dart';
 import 'package:anugrah_lens/screen/form-screen/create_new_angsuran.dart';
 import 'package:anugrah_lens/screen/login/login_screen.dart';
@@ -11,6 +10,8 @@ import 'package:anugrah_lens/widget/floating_action_button_widget.dart';
 import 'package:anugrah_lens/widget/textfield_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BerandaPageScreen extends StatefulWidget {
   BerandaPageScreen({Key? key}) : super(key: key);
@@ -22,11 +23,40 @@ class BerandaPageScreen extends StatefulWidget {
 class _BerandaPageScreenState extends State<BerandaPageScreen> {
   final CostumersService _costumersService = CostumersService();
   final TextEditingController name = TextEditingController();
+  String? _photoUrl;
+  String? _firstName;
+  String? _email;
+  String? _name;
+
+  Future<void> _loadProfile() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _name = prefs.getString('name') ?? "";
+      _firstName = _name?.split(' ')[0]; // Ambil bagian pertama (nama depan)
+      _photoUrl = prefs.getString('photoUrl') ?? "";
+      _email = prefs.getString('email') ?? "";
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  // preferensi pengguna
 
   Future<void> _handleSignOut() async {
     try {
+      // Logout dari Firebase
       await FirebaseAuth.instance.signOut();
-      await UserPreferences.clearPreferences();
+      await GoogleSignIn().signOut();
+
+      // Hapus data dari SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      // Redirect ke layar login
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => LoginScreen()),
         (Route<dynamic> route) => false,
@@ -48,7 +78,8 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
         title: Align(
           alignment: Alignment.topRight,
           child: Text(
-            'Hello, thiyara',
+            // 'Hello, thiyara',
+            'Hello, ${_firstName ?? ''}',
             style:
                 FontFamily.titleForm.copyWith(color: ColorStyle.primaryColor),
           ),
@@ -64,10 +95,11 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
               ),
               child: Row(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 35,
-                    backgroundImage: const NetworkImage(
-                        'https://img.freepik.com/free-photo/business-finance-employment-female-successful-entrepreneurs-concept-confident-smiling-asian-businesswoman-office-worker-white-suit-glasses-using-laptop-help-clients_1258-59126.jpg?t=st=1724925519~exp=1724929119~hmac=c3b92a7be28ab28deebb3cd42b9755db39ca7267895a35ca60158967930094a2&w=740'), // Replace with your image URL
+                    // get from shared preferences
+                    backgroundImage: NetworkImage(_photoUrl ??
+                        'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png'),
                   ),
                   const SizedBox(
                       width: 16), // Space between the picture and text
@@ -76,13 +108,13 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Thiyara Al-Mawaddah',
+                        _firstName.toString(),
                         style: FontFamily.titleForm.copyWith(
                             color: ColorStyle.whiteColors,
                             fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        'thiyaraali@gmail.com',
+                        _email.toString(),
                         style: FontFamily.caption
                             .copyWith(color: ColorStyle.whiteColors),
                       ),
@@ -121,8 +153,7 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                   style: FontFamily.caption
                       .copyWith(color: ColorStyle.primaryColor)),
               onTap: () {
-                // logout user firebase
-                // Navigate to the Login screen
+                _handleSignOut();
               },
             ),
           ],

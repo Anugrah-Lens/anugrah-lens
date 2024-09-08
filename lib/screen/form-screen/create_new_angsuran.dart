@@ -1,6 +1,5 @@
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/home/bottom_screen.dart';
-import 'package:anugrah_lens/screen/home/home_page_screen.dart';
 import 'package:anugrah_lens/services/add_customer.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
