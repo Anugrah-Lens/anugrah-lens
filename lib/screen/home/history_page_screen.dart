@@ -1,7 +1,6 @@
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/angsuran/menu_angsuran.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
-import 'package:anugrah_lens/services/flushbar_widget.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/card.dart';

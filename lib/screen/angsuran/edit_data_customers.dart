@@ -1,14 +1,10 @@
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/home/bottom_screen.dart';
-import 'package:anugrah_lens/screen/home/home_page_screen.dart';
-import 'package:anugrah_lens/services/add_customer.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/services/edit_custumers.dart';
-import 'package:anugrah_lens/services/flushbar_widget.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/Button_widget.dart';
-import 'package:anugrah_lens/widget/formatters_widget.dart';
 import 'package:anugrah_lens/widget/radio_button_widget.dart';
 import 'package:anugrah_lens/widget/text_widget.dart';
 import 'package:anugrah_lens/widget/textfield_widget.dart';

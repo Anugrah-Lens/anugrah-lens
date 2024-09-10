@@ -4,43 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-// ////////////////////////// formating number field //////////////////////////
-// class NumberInputFormatter extends TextInputFormatter {
-//   final NumberFormat numberFormat = NumberFormat.decimalPattern('en_US');
-
-//   @override
-//   TextEditingValue formatEditUpdate(
-//     TextEditingValue oldValue,
-//     TextEditingValue newValue,
-//   ) {
-//     if (newValue.text.isEmpty) {
-//       return newValue;
-//     }
-
-//     // Check if the input can be parsed to a number
-//     final newText = newValue.text;
-//     final numericText = newText.replaceAll(RegExp(r'[^0-9]'), '');
-
-//     if (numericText.isEmpty) {
-//       // Allow non-numeric input (e.g., letters) to pass through
-//       return newValue;
-//     }
-
-//     // Convert to number and then format it
-//     final intValue = int.tryParse(numericText);
-//     if (intValue == null) {
-//       return newValue;
-//     }
-
-//     final formattedText = numberFormat.format(intValue);
-
-//     return newValue.copyWith(
-//       text: formattedText,
-//       selection: TextSelection.collapsed(offset: formattedText.length),
-//     );
-//   }
-// }
-
 class TextFieldWidget extends StatefulWidget {
   final String hintText;
   final double width;
@@ -109,15 +72,14 @@ class SearchDropdownFieldHome extends StatefulWidget {
   final ValueChanged<String>? onSelected;
 
   const SearchDropdownFieldHome(
-      {Key? key,
+      {super.key,
       required this.items,
       required this.hintText,
       this.controller,
       this.onChange,
       this.onSelected,
       this.prefixIcons,
-      this.suffixIcons})
-      : super(key: key);
+      this.suffixIcons});
 
   @override
   _SearchDropdownFieldHomeState createState() =>
@@ -154,6 +116,47 @@ class _SearchDropdownFieldHomeState extends State<SearchDropdownFieldHome> {
               .toLowerCase()
               .contains(textEditingValue.text.toLowerCase());
         });
+      },
+      // add optionviewbuilder
+      optionsViewBuilder: (BuildContext context, Function(String) onSelected,
+          Iterable<String> options) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: Material(
+              child: Container(
+                color: ColorStyle.whiteColors,
+                width: 350,
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(8.0),
+                  shrinkWrap: true,
+                  itemCount: options.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    final String option = options.elementAt(index);
+                    return Column(
+                      children: [
+                        ListTile(
+                          title: Text(option),
+                          onTap: () {
+                            onSelected(
+                                option); // Call onSelected when an option is tapped
+                          },
+                        ),
+                        if (index <
+                            options.length - 1) // Add Divider between items
+                          Divider(
+                            color: Colors.grey,
+                            height: 1,
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
       },
       onSelected: widget.onSelected,
       fieldViewBuilder: (BuildContext context,
@@ -411,20 +414,30 @@ class _SearchDropdownFieldState extends State<SearchDropdownField> {
             alignment: Alignment.topLeft,
             child: Material(
               child: Container(
-                color: ColorStyle.accentColor,
-                height: 400,
-                width: 300,
+                color: Color.fromARGB(255, 242, 246, 253),
+                width: 350,
                 child: ListView.builder(
                   padding: const EdgeInsets.all(8.0),
+                  shrinkWrap: true,
                   itemCount: options.length,
                   itemBuilder: (BuildContext context, int index) {
                     final String option = options.elementAt(index);
-                    return ListTile(
-                      title: Text(option),
-                      onTap: () {
-                        onSelected(
-                            option); // Call onSelected when an option is tapped
-                      },
+                    return Column(
+                      children: [
+                        ListTile(
+                          title: Text(option),
+                          onTap: () {
+                            onSelected(
+                                option); // Call onSelected when an option is tapped
+                          },
+                        ),
+                        if (index <
+                            options.length - 1) // Add Divider between items
+                          Divider(
+                            color: Colors.grey,
+                            height: 1,
+                          ),
+                      ],
                     );
                   },
                 ),
@@ -461,7 +474,6 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-
       width: widget.width ?? double.infinity,
       child: TextFormField(
         controller: widget.controller,
@@ -489,7 +501,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
           ),
         ),
         validator: widget.validator,
-      
+
         // Jika nilai widget.readOnly diberikan, gunakan itu. Jika null, maka gunakan false sebagai default
         readOnly: widget.readOnly ?? false,
         onTap: widget.onTap,

@@ -1,1 +1,1 @@
-const baseUrl = "https://vh9fszkr-9000.asse.devtunnels.ms";
+const baseUrl = "http://backend-anugrah-lens-production.up.railway.app";

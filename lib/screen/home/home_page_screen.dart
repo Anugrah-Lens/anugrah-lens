@@ -2,10 +2,9 @@ import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/angsuran/menu_angsuran.dart';
 import 'package:anugrah_lens/screen/form-screen/create_new_angsuran.dart';
 import 'package:anugrah_lens/screen/home/bottom_screen.dart';
-import 'package:anugrah_lens/screen/home/history_page_screen.dart';
 import 'package:anugrah_lens/screen/login/login_screen.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
-import 'package:anugrah_lens/services/flushbar_widget.dart';
+
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/card.dart';
@@ -347,8 +346,8 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                               ),
                             );
                           },
-                          prefixIcons: const Icon(Icons.search,
-                              color: Color.fromARGB(255, 53, 35, 35)),
+                          prefixIcons: Icon(Icons.search,
+                              color: ColorStyle.primaryColor),
                           suffixIcons: null,
                           controller: name,
                           hintText: 'cari nama pelanggan',

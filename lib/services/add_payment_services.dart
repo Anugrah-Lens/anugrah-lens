@@ -1,8 +1,9 @@
+import 'package:anugrah_lens/style/base_url.dart';
 import 'package:dio/dio.dart';
 
 class PaymentService {
   final Dio _dio = Dio();
-  final String baseUrl = 'https://vh9fszkr-9000.asse.devtunnels.ms';
+ 
 
   Future<Map<String, dynamic>> addPaymentDataAmount(
       int bayar, String glassId, String paidDate) async {
