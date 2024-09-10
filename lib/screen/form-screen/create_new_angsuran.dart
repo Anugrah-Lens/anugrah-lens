@@ -367,20 +367,6 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
 
                             final String paymentMethod = _paymentStatus;
 
-                            print('Sending data:');
-                            print('Name: $customerName');
-                            print('Phone: $phone');
-                            print('Address: $address');
-                            print('Frame: $frame');
-                            print('Lens Type: $lensType');
-                            print('Left Eye: $leftEye');
-                            print('Right Eye: $rightEye');
-                            print('Price: $price');
-                            print('Deposit: $deposit');
-                            print('Order Date: $formattedOrderDate');
-                            print('Delivery Date: $formattedDeliveryDate');
-                            print('Payment Method: $paymentMethod');
-
                             // Call addCustomer service
                             final responseMessage =
                                 await CustomerService().addCustomer(

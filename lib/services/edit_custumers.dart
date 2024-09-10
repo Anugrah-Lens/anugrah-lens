@@ -22,28 +22,8 @@ class CustomersService {
     required String paymentStatus,
   }) async {
     try {
-      final url = "$baseUrl/edit-customer/$idCustomer/$glassId";
-      print('Sending PUT request to: $url');
-      
-      // Log data being sent
-      print({
-        'name': name,
-        'phone': phone,
-        'address': address,
-        'frame': frame,
-        'lensType': lensType,
-        'left': left,
-        'right': right,
-        'price': price,
-        'deposit': deposit,
-        'orderDate': orderDate,
-        'deliveryDate': deliveryDate,
-        'paymentMethod': paymentMethod,
-        'paymentStatus': paymentStatus,
-      });
-
       final response = await _dio.put(
-        url,
+        "$baseUrl/edit-customer/$idCustomer/$glassId",
         data: {
           'name': name,
           'phone': phone,
@@ -71,7 +51,8 @@ class CustomersService {
         }
       } else {
         print('Failed with status code: ${response.statusCode}');
-        throw Exception('Failed to update customer with status code ${response.statusCode}');
+        throw Exception(
+            'Failed to update customer with status code ${response.statusCode}');
       }
     } on DioError catch (dioError) {
       // Handling DioError (HTTP error)

@@ -1,1 +1,1 @@
-const baseUrl = "http://backend-anugrah-lens-production.up.railway.app";
+const baseUrl = "https://backend-anugrah-lens-production.up.railway.app";
