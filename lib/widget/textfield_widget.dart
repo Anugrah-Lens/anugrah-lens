@@ -4,6 +4,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+class CurrencyInputFormatter extends TextInputFormatter {
+  final NumberFormat _formatter = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: '',
+    decimalDigits: 0,
+  );
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    // Jika input baru kosong, kembalikan nilai kosong
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Hapus semua karakter yang bukan angka
+    final newText = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    // Format angka menjadi Rupiah dengan pemisah ribuan
+    final newFormattedText = _formatter.format(int.parse(newText));
+
+    // Kembalikan nilai yang diformat dengan posisi kursor yang benar
+    return newValue.copyWith(
+      text: newFormattedText,
+      selection: TextSelection.collapsed(offset: newFormattedText.length),
+    );
+  }
+}
+
 class TextFieldWidget extends StatefulWidget {
   final String hintText;
   final double width;
@@ -456,13 +487,19 @@ class TextFormFieldWidget extends StatefulWidget {
   final VoidCallback? onTap;
   final bool? readOnly; // Tambahkan parameter readOnly
   final double? width;
+  final List<TextInputFormatter>? inputFormatters;
+  final Color? color; // Tambahkan parameter warna
+   final Color? textColor; // Tambahkan parameter warna teks
 
   const TextFormFieldWidget({
     super.key,
     this.controller,
+    this.inputFormatters,
     this.validator,
     this.width,
+    this.color,
     this.onTap,
+    this.textColor,
     this.readOnly, // Inisialisasi parameter readOnly
   });
 
@@ -476,13 +513,19 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
     return SizedBox(
       width: widget.width ?? double.infinity,
       child: TextFormField(
+        inputFormatters: widget.inputFormatters,
         controller: widget.controller,
         keyboardType: TextInputType.text,
+        style: TextStyle(
+          color: widget.readOnly == true
+              ? ColorStyle.disableColor // Warna teks ketika readOnly
+              : widget.textColor ??
+                  Colors.black, // Gunakan warna teks parameter atau default
+        ),
         decoration: InputDecoration(
           labelText: null,
           hintText: null,
           hintStyle: FontFamily.caption.copyWith(
-            // Sesuaikan dengan FontFamily Anda
             color: ColorStyle.disableColor,
           ),
           enabledBorder: OutlineInputBorder(
@@ -494,15 +537,15 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(
-              color: ColorStyle.primaryColor, // Warna border ketika fokus
+            borderSide: BorderSide(
+              color: widget.color ??
+                  ColorStyle
+                      .primaryColor, // Gunakan warna parameter atau default
               width: 1.5, // Lebar border ketika fokus
             ),
           ),
         ),
         validator: widget.validator,
-
-        // Jika nilai widget.readOnly diberikan, gunakan itu. Jika null, maka gunakan false sebagai default
         readOnly: widget.readOnly ?? false,
         onTap: widget.onTap,
       ),

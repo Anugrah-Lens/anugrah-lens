@@ -25,9 +25,17 @@ class _RiwayatPageScreenState extends State<RiwayatPageScreen> {
       backgroundColor: ColorStyle.whiteColors,
       appBar: AppBar(
         backgroundColor: ColorStyle.whiteColors,
-        title: const Padding(
-          padding: EdgeInsets.all(2.0),
-          child: Text("Anugrah Lens", style: FontFamily.title),
+        title: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Expanded(
+            child: SizedBox(
+              height: 20, // You can adjust the height as needed
+              child: Image.asset(
+                'assets/images/AnugrahLensLogo.png',
+                fit: BoxFit.contain, // Ensures the image scales properly
+              ),
+            ),
+          ),
         ),
       ),
       body: FutureBuilder<CustomersModel>(
@@ -73,7 +81,14 @@ class _RiwayatPageScreenState extends State<RiwayatPageScreen> {
                   hintText: 'cari nama pelanggan',
                   items: customers.map((e) => e.name ?? '').toList(),
                 ),
-                         const SizedBox(height: 4.0),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
+                  child: Text('Semua Pelanggan',
+                      style: FontFamily.title.copyWith(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                      )),
+                ),
                 Expanded(
                   child: ListView.builder(
                     itemCount: customers.length,

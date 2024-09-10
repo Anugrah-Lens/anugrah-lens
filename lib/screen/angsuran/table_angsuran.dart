@@ -407,27 +407,33 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                     padding: const EdgeInsets.only(bottom: 8.0, right: 8.0),
                     child: Align(
                         alignment: Alignment.centerRight,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text('Status Pembayaran :',
-                                style: FontFamily.titleForm),
-                            const SizedBox(width: 10),
-                            Column(
-                              children: glasses.map((glass) {
-                                return Text(
-                                  glass.paymentStatus == 'Paid'
-                                      ? 'Lunas'
-                                      : 'Belum Lunas',
-                                  style: TextStyle(
-                                    color: glass.paymentStatus == 'Paid'
-                                        ? Colors.green
-                                        : Colors.red,
-                                  ),
-                                );
-                              }).toList(),
-                            )
-                          ],
+                        child: Padding(
+                           padding: const EdgeInsets.only(
+                                right: 8.0,
+                                bottom: 12,
+                              ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('Status Pembayaran :',
+                                  style: FontFamily.titleForm),
+                              const SizedBox(width: 10),
+                              Column(
+                                children: glasses.map((glass) {
+                                  return Text(
+                                    glass.paymentStatus == 'Paid'
+                                        ? 'Lunas'
+                                        : 'Belum Lunas',
+                                    style: TextStyle(
+                                      color: glass.paymentStatus == 'Paid'
+                                          ? Colors.green
+                                          : Colors.red,
+                                    ),
+                                  );
+                                }).toList(),
+                              )
+                            ],
+                          ),
                         )),
                   ),
                   Expanded(

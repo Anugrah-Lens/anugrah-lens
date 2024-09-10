@@ -57,6 +57,7 @@ Future<UserCredential?> signInWithGoogle() async {
 class _LoginScreenState extends State<LoginScreen> {
   TextEditingController codeController = TextEditingController();
   bool obscureText = true;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -80,15 +81,19 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.all(2.0),
-                    child: Text('Anugrah Lens', style: FontFamily.h2),
+                  SizedBox(
+                    height: 60,
+                    // You can adjust the height as needed
+                    child: Image.asset(
+                      'assets/images/AnugrahLensLogoIcon.png',
+                      fit: BoxFit.contain, // Ensures the image scales properly
+                    ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
+                  Padding(
+                    padding: EdgeInsets.all(12.0),
                     child: Text(
                         ' kelola data pelanggan dengan mudah dan cepat ',
-                        style: FontFamily.caption),
+                        style: FontFamily.caption.copyWith()),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(2.0),
@@ -101,12 +106,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 40),
                   ElevatedButtonWidget(
                     text: "Login with Google Account",
+                    isLoading: isLoading, // Menampilkan indikator loading
                     onPressed: () {
+                      setState(() {
+                        isLoading =
+                            true; // Tampilkan loading saat tombol ditekan
+                      });
+
                       signInWithGoogle().then((value) {
                         if (value != null) {
                           print("Login berhasil, user: ${value.user?.email}");
 
-                          // Tampilkan dialog untuk memasukkan kode admin
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
@@ -160,6 +170,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                     onPressed: () {
                                       Navigator.of(context).pop();
+                                      setState(() {
+                                        isLoading =
+                                            false; // Sembunyikan loading
+                                      });
                                     },
                                   ),
                                   TextButton(
@@ -171,11 +185,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      // Cek apakah kode yang dimasukkan sesuai
                                       if (codeController.text == 'Anugrah112') {
                                         Navigator.of(context)
                                             .pop(); // Tutup dialog
-                                        // Arahkan ke halaman pertama jika kode benar
                                         Navigator.pushReplacement(
                                           context,
                                           MaterialPageRoute(
@@ -184,14 +196,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                                     activeScreen: 0),
                                           ),
                                         );
+                                        setState(() {
+                                          isLoading =
+                                              false; // Sembunyikan loading
+                                        });
                                       } else {
-                                        // Tampilkan pesan kesalahan jika kode salah
                                         showTopSnackBar(
                                           context,
                                           'Kode admin salah, silakan coba lagi',
                                           backgroundColor:
                                               ColorStyle.errorColor,
                                         );
+                                        setState(() {
+                                          isLoading =
+                                              false; // Sembunyikan loading
+                                        });
                                       }
                                     },
                                   ),
@@ -206,6 +225,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             'Login gagal, silakan coba lagi',
                             backgroundColor: ColorStyle.errorColor,
                           );
+                          setState(() {
+                            isLoading = false; // Sembunyikan loading
+                          });
                         }
                       }).catchError((error) {
                         print("Terjadi error selama login: $error");
@@ -214,6 +236,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           'Terjadi error selama login, silakan coba lagi',
                           backgroundColor: ColorStyle.errorColor,
                         );
+                        setState(() {
+                          isLoading = false; // Sembunyikan loading
+                        });
                       });
                     },
                   ),

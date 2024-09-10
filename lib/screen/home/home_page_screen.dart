@@ -141,18 +141,40 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       backgroundColor: ColorStyle.whiteColors,
       appBar: AppBar(
         backgroundColor: ColorStyle.whiteColors,
-        title: Align(
-          alignment: Alignment.topRight,
-          child: Text(
-            // 'Hello, thiyara',
-            'Hello, ${_firstName ?? ''}',
-            style:
-                FontFamily.titleForm.copyWith(color: ColorStyle.primaryColor),
-          ),
+        title: Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 20, // You can adjust the height as needed
+                child: Image.asset(
+                  'assets/images/AnugrahLensLogo.png',
+                  fit: BoxFit.contain, // Ensures the image scales properly
+                ),
+              ),
+            ),
+            const Spacer(),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Hello, ',
+                    style: FontFamily.titleForm
+                        .copyWith(color: ColorStyle.primaryColor),
+                  ),
+                  TextSpan(
+                    text: _firstName ?? '',
+                    style: FontFamily.titleForm
+                        .copyWith(color: ColorStyle.secondaryColor),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
       drawer: Drawer(
@@ -277,10 +299,8 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            'Gagal memuat data pelanggan',
-                            style: FontFamily.caption,
-                          ),
+                          const Text('Gagal memuat data pelanggan',
+                              style: FontFamily.caption),
                           const SizedBox(height: 20.0),
                           ElevatedButton(
                             onPressed: () async {
@@ -312,23 +332,20 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                   }
 
                   // Mengambil daftar pelanggan
+
                   List<Customer> customers = snapshot.data!.customer!;
 
                   // Filter pelanggan dengan paymentStatus 'Unpaid'
-                  customers = customers
+
+                  List<Customer> unpaidCustomers = customers
                       .where((element) => element.glasses!
                           .any((glass) => glass.paymentStatus == 'Unpaid'))
                       .toList();
-
                   return Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Padding(
-                          padding: EdgeInsets.all(2.0),
-                          child: Text("Anugrah Lens", style: FontFamily.h3),
-                        ),
                         const SizedBox(height: 10.0),
                         SearchDropdownFieldHome(
                           onSelected: (String selectedName) {
@@ -346,18 +363,27 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                               ),
                             );
                           },
-                          prefixIcons: Icon(Icons.search,
+                          prefixIcons: const Icon(Icons.search,
                               color: ColorStyle.primaryColor),
                           suffixIcons: null,
                           controller: name,
                           hintText: 'cari nama pelanggan',
                           items: customers.map((e) => e.name ?? '').toList(),
                         ),
+                        Padding(
+                          padding:
+                              const EdgeInsets.only(top: 16.0, bottom: 8.0),
+                          child: Text('Pelanggan yang belum Selesai',
+                              style: FontFamily.title.copyWith(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              )),
+                        ),
                         Expanded(
                           child: ListView.builder(
-                            itemCount: customers.length,
+                            itemCount: unpaidCustomers.length,
                             itemBuilder: (context, index) {
-                              final customer = customers[index];
+                              final customer = unpaidCustomers[index];
 
                               // Select the first glass if it exists
                               Glass? selectedGlass =

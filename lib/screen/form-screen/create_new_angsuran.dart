@@ -23,6 +23,7 @@ class CreateNewAngsuranScreen extends StatefulWidget {
 
 class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
   final TextEditingController name = TextEditingController();
+
   // Controllers untuk mengelola input dari form
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -36,8 +37,22 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
   final TextEditingController orderDateController = TextEditingController();
   final TextEditingController deliveryDateController = TextEditingController();
 
+  double remainingPayment = 0;
   String paymentMethod = 'Cash'; // Default payment method
   String _paymentStatus = 'Lunas';
+  String? selectedName;
+  bool isLoading = false;
+
+  void _calculateRemainingPayment() {
+    // Parse the text from the controllers and calculate the remaining payment
+    final double price =
+        double.tryParse(priceController.text.replaceAll('.', '')) ?? 0;
+    final double deposit =
+        double.tryParse(depositController.text.replaceAll('.', '')) ?? 0;
+    setState(() {
+      remainingPayment = price - deposit;
+    });
+  }
 
   // Untuk menampilkan dialog date picker
   Future<void> _selectDate(
@@ -63,6 +78,16 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
   void initState() {
     super.initState();
     _fetchCustomers(); // Fetch data saat inisialisasi
+    priceController.addListener(_calculateRemainingPayment);
+    depositController.addListener(_calculateRemainingPayment);
+  }
+
+  @override
+  void dispose() {
+    // Dispose controllers when not needed
+    priceController.dispose();
+    depositController.dispose();
+    super.dispose();
   }
 
   // Fetch data customers
@@ -83,10 +108,17 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
     }
   }
 
-  String? selectedName;
-
   @override
   Widget build(BuildContext context) {
+    String formatRupiah(double amount) {
+      final formatCurrency = NumberFormat.currency(
+        locale: 'id_ID',
+        symbol: 'Rp ',
+        decimalDigits: 0, // Menghilangkan desimal jika tidak diperlukan
+      );
+      return formatCurrency.format(amount);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Pelanggan Baru',
@@ -140,7 +172,7 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                         controller: addressController,
                         hintText: 'e.g. Alamat',
                       ),
-                      const SizedBox(height: 20.0),
+                      const SizedBox(height: 32.0),
                       const TitleTextWIdget(
                         name: 'Nama gagang (Frame)',
                       ),
@@ -171,6 +203,29 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                                 .center, // Agar teks berada di tengah kolom
                             children: [
                               Text(
+                                'Right',
+                                textAlign: TextAlign
+                                    .center, // Mengatur teks agar rata tengah
+                                style: FontFamily.caption.copyWith(
+                                  color: ColorStyle.secondaryColor,
+                                ),
+                              ),
+                              const SizedBox(height: 4.0),
+                              // TextField dengan ukuran kecil
+                              TextFieldWidget(
+                                controller: rightEyeController,
+                                hintText: 'e.g. 50',
+                                width: 100, // Lebar dari TextField
+                              ),
+                            ],
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment
+                                .center, // Menjaga isi kolom tetap di tengah
+                            crossAxisAlignment: CrossAxisAlignment
+                                .center, // Agar teks berada di tengah kolom
+                            children: [
+                              Text(
                                 'Left',
                                 textAlign: TextAlign
                                     .center, // Mengatur teks agar rata tengah
@@ -187,36 +242,14 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                               ),
                             ],
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment
-                                .center, // Menjaga isi kolom tetap di tengah
-                            crossAxisAlignment: CrossAxisAlignment
-                                .center, // Agar teks berada di tengah kolom
-                            children: [
-                              Text(
-                                'Right',
-                                textAlign: TextAlign
-                                    .center, // Mengatur teks agar rata tengah
-                                style: FontFamily.caption.copyWith(
-                                  color: ColorStyle.secondaryColor,
-                                ),
-                              ),
-                              const SizedBox(height: 4.0),
-                              // TextField dengan ukuran kecil
-                              TextFieldWidget(
-                                controller: rightEyeController,
-                                hintText: 'e.g. 50',
-                                width: 100, // Lebar dari TextField
-                              ),
-                            ],
-                          )
                         ],
                       ),
-                      const SizedBox(height: 20.0),
+                      const SizedBox(height: 32.0),
                       const TitleTextWIdget(
                         name: 'Harga Kaca Mata',
                       ),
                       TextFieldWidget(
+                        inputFormatters: [CurrencyInputFormatter()],
                         controller: priceController,
                         hintText: 'e.g. 500.000',
                       ),
@@ -225,10 +258,16 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                         name: 'Deposit(DP)',
                       ),
                       TextFieldWidget(
+                        inputFormatters: [CurrencyInputFormatter()],
                         controller: depositController,
                         hintText: 'e.g. 100.000',
                       ),
-                      const SizedBox(height: 20.0),
+                      SizedBox(height: 8),
+                      Text("Sisa pembayaran: ${formatRupiah(remainingPayment)}",
+                          style: FontFamily.titleForm.copyWith(
+                            color: ColorStyle.errorColor
+                          )),
+                      const SizedBox(height: 32.0),
                       const TitleTextWIdget(
                         name: 'Tanggal Pesanan',
                       ),
@@ -276,10 +315,20 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 32.0),
+                      const SizedBox(height: 40),
+                      // In your main widget or form widget
+
                       ElevatedButtonWidget(
+                        text: 'Simpan',
+                        isLoading: isLoading, // Set isLoading based on state
                         onPressed: () async {
+                          setState(() {
+                            isLoading =
+                                true; // Set loading to true when the button is pressed
+                          });
+
                           try {
+                            // Validasi input kosong
                             if (nameController.text.isEmpty) {
                               throw Exception(
                                   "Nama pelanggan tidak boleh kosong.");
@@ -321,36 +370,24 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                               throw Exception(
                                   "Tanggal antaran tidak boleh kosong.");
                             }
-                            // Validate input values
-                            if (nameController.text.isEmpty ||
-                                phoneController.text.isEmpty ||
-                                addressController.text.isEmpty ||
-                                frameController.text.isEmpty ||
-                                lensTypeController.text.isEmpty ||
-                                leftEyeController.text.isEmpty ||
-                                rightEyeController.text.isEmpty ||
-                                priceController.text.isEmpty ||
-                                depositController.text.isEmpty ||
-                                orderDateController.text.isEmpty ||
-                                deliveryDateController.text.isEmpty) {
-                              throw Exception("All fields are required.");
-                            }
 
                             // Parsing input values
                             final String customerName =
-                                nameController.text.trim(); //
+                                nameController.text.trim();
                             final String phone = phoneController.text;
                             final String address = addressController.text;
                             final String frame = frameController.text;
                             final String lensType = lensTypeController.text;
                             final String leftEye = leftEyeController.text;
                             final String rightEye = rightEyeController.text;
-                            final int price = int.parse(
-                                priceController.text.replaceAll(',', ''));
-                            final int deposit = int.parse(
-                                depositController.text.replaceAll(',', ''));
 
-                            // Parsing dates
+                            // Menghapus titik sebelum parsing
+                            final BigInt price = BigInt.parse(
+                                priceController.text.replaceAll('.', ''));
+                            final BigInt deposit = BigInt.parse(
+                                depositController.text.replaceAll('.', ''));
+
+                            // Parsing tanggal
                             DateTime selectedOrderDate =
                                 DateFormat('dd MMMM yyyy')
                                     .parse(orderDateController.text)
@@ -367,63 +404,65 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
 
                             final String paymentMethod = _paymentStatus;
 
-                            // Call addCustomer service
+                            print('Sending data:');
+                            print('Name: $customerName');
+                            print('Phone: $phone');
+                            print('Address: $address');
+                            print('Frame: $frame');
+                            print('Lens Type: $lensType');
+                            print('Left Eye: $leftEye');
+                            print('Right Eye: $rightEye');
+                            print('Price: $price');
+                            print('Deposit: $deposit');
+                            print('Order Date: $formattedOrderDate');
+                            print('Delivery Date: $formattedDeliveryDate');
+                            print('Payment Method: $paymentMethod');
+
+                            // Kirim data ke service
                             final responseMessage =
                                 await CustomerService().addCustomer(
                               name: customerName,
-
-                              /// int ubah ke bigint
                               phone: phone,
                               address: address,
                               frame: frame,
                               lensType: lensType,
                               left: leftEye,
                               right: rightEye,
-                              price: price,
-                              deposit: deposit,
+                              price: price.toInt(),
+                              deposit: deposit.toInt(),
                               orderDate: formattedOrderDate,
                               deliveryDate: formattedDeliveryDate,
                               paymentMethod: paymentMethod,
                             );
 
-                            // Show success message
-                            showTopSnackBar(
-                              context,
-                              responseMessage,
-                            );
+                            showTopSnackBar(context, responseMessage);
 
-                            /// navigate to home screen
+                            // Navigate to home screen
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => FirstScreen(
-                                  activeScreen: 0,
-                                ),
-                              ),
-                              (route) => false,
-                            );
-
-                            /// navigate to home screen
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => FirstScreen(
-                                  activeScreen: 0,
-                                ),
-                              ),
+                                  builder: (context) =>
+                                      FirstScreen(activeScreen: 0)),
                               (route) => false,
                             );
                           } catch (e) {
+                            print(e);
                             // Show error message
                             showTopSnackBar(
                               context,
                               e.toString(),
                               backgroundColor: ColorStyle.errorColor,
                             );
+                          } finally {
+                            setState(() {
+                              isLoading =
+                                  false; // Reset loading after async operation is complete
+                            });
                           }
                         },
-                        text: 'Simpan',
-                      )
+                      ),
+
+                      SizedBox(height: 100)
                     ],
                   ),
                 ),

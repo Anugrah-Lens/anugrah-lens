@@ -179,13 +179,19 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
     });
   }
 
-  // Update data pelanggan
   Future<void> _updateCustomer() async {
+    setState(() {
+      isLoading = true;
+    });
+
     if (_formKey.currentState!.validate()) {
       try {
-        _logData(); // Log data sebelum mengirim request
+        _logData();
 
-        // Parsing dates
+        final BigInt price =
+            BigInt.parse(priceController.text.replaceAll('.', ''));
+        final BigInt deposit =
+            BigInt.parse(depositController.text.replaceAll('.', ''));
         DateTime selectedOrderDate =
             DateFormat('dd MMMM yyyy').parse(orderDateController.text).toUtc();
         String formattedOrderDate = selectedOrderDate.toIso8601String();
@@ -194,6 +200,8 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
             .parse(deliveryDateController.text)
             .toUtc();
         String formattedDeliveryDate = selectedDeliveryDate.toIso8601String();
+
+        print('Sending update request...');
 
         await CustomersService().updateCustomer(
           idCustomer: widget.idCustomer,
@@ -205,42 +213,62 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
           lensType: lensTypeController.text,
           left: leftEyeController.text,
           right: rightEyeController.text,
-          price: int.parse(priceController.text), // Pastikan validasi harga
-          deposit:
-              int.parse(depositController.text), // Pastikan validasi deposit
+          price: price.toInt(),
+          deposit: deposit.toInt(),
           orderDate: formattedOrderDate,
           deliveryDate: formattedDeliveryDate,
           paymentMethod: paymentMethodController.text,
           paymentStatus: widget.paymentStatus,
         );
 
-        // Show success message and pop back to the previous screen
-        showTopSnackBar(
-          context,
-          'Data pelanggan berhasil diperbarui',
-          backgroundColor: ColorStyle.primaryColor,
-        );
-        // Pindah ke halaman sebelumnya (FirstScree
+        print('Update successful!');
 
+        // // Tampilkan SnackBar sebelum navigasi
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('Data pelanggan berhasil diperbarui'),
+        //     backgroundColor: ColorStyle.primaryColor,
+        //   ),
+        // );
+
+        // Tambahkan delay sebelum navigasi
+        await Future.delayed(Duration(seconds: 2));
+
+        // Lakukan navigasi setelah SnackBar ditampilkan
         Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const FirstScreen(
-                activeScreen: 0,
-              ),
-            ),
-            (route) => false);
-      } catch (error) {
-        showTopSnackBar(
           context,
-          'Gagal memperbarui data pelanggan: $error',
-          backgroundColor: ColorStyle.errorColor,
+          MaterialPageRoute(
+            builder: (context) => const FirstScreen(
+              activeScreen: 0,
+            ),
+          ),
+          (route) => false,
         );
+      } catch (error) {
+        print('Error updating customer: $error');
+
+        // Tampilkan SnackBar jika ada error
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memperbarui data pelanggan: $error'),
+            backgroundColor: ColorStyle.errorColor,
+          ),
+        );
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
       }
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      print('Form validation failed');
     }
   }
 
   String? selectedName;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -264,7 +292,11 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
                   ),
                   const SizedBox(height: 4.0),
                   TextFormFieldWidget(
+                    color: ColorStyle.disableColor,
+                    textColor: ColorStyle.disableColor,
                     controller: nameController,
+                    readOnly:
+                        true, // Menonaktifkan input agar tidak bisa diedit
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Nama tidak boleh kosong';
@@ -272,6 +304,7 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
                       return null;
                     },
                   ),
+
                   const TitleTextWIdget(
                     name: 'Alamat',
                   ),
@@ -301,6 +334,7 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: 32.0),
                   const TitleTextWIdget(
                     name: 'Frame',
                   ),
@@ -340,6 +374,26 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
+                            'Right',
+                            style: FontFamily.caption
+                                .copyWith(color: ColorStyle.secondaryColor),
+                          ),
+                          TextFormFieldWidget(
+                            width: 100,
+                            controller: rightEyeController,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Harus diisi';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
                             'Left',
                             style: FontFamily.caption
                                 .copyWith(color: ColorStyle.secondaryColor),
@@ -357,47 +411,30 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
                           ),
                         ],
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Right',
-                            style: FontFamily.caption
-                                .copyWith(color: ColorStyle.secondaryColor),
-                          ),
-                          TextFormFieldWidget(
-                            width: 100,
-                            controller: rightEyeController,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Harus diisi';
-                              }
-                              return null;
-                            },
-                          ),
-                        ],
-                      )
                     ],
                   ),
-
+                  const SizedBox(height: 32.0),
                   const TitleTextWIdget(
                     name: 'Harga',
                   ),
                   const SizedBox(height: 4.0),
                   TextFormFieldWidget(
-                      controller: priceController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Harga tidak ';
-                        }
-                        return null;
-                      }),
+                    inputFormatters: [CurrencyInputFormatter()],
+                    controller: priceController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Harga tidak ';
+                      }
+                      return null;
+                    },
+                  ),
 
                   const TitleTextWIdget(
                     name: 'Deposit(DP)',
                   ),
                   const SizedBox(height: 4.0),
                   TextFormFieldWidget(
+                    inputFormatters: [CurrencyInputFormatter()],
                     controller: depositController,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -406,6 +443,7 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: 32.0),
                   const TitleTextWIdget(
                     name: 'Tanggal Pemesanan',
                   ),
@@ -470,10 +508,13 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
                       ],
                     ),
                   ),
-
+                  SizedBox(height: 32),
                   // Add more fields as necessary for other attributes (deliveryDate, price, etc.)
                   ElevatedButtonWidget(
-                      text: 'Simpan', onPressed: _updateCustomer),
+                      isLoading: isLoading,
+                      text: 'Simpan',
+                      onPressed: _updateCustomer),
+                  SizedBox(height: 100),
                 ],
               ),
             ),
@@ -492,7 +533,7 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         dismissDirection: DismissDirection.up,
-        duration: duration ?? const Duration(milliseconds: 1000),
+        duration: duration ?? const Duration(milliseconds: 2000),
         backgroundColor: backgroundColor ?? ColorStyle.primaryColor,
         margin: EdgeInsets.only(
             bottom: MediaQuery.of(context).size.height - 100,

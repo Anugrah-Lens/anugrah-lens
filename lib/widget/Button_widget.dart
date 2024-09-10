@@ -7,6 +7,7 @@ class ElevatedButtonWidget extends StatefulWidget {
   final VoidCallback onPressed;
   final double? height;
   final Color? color;
+  final bool isLoading; // Tambahkan flag isLoading
 
   ElevatedButtonWidget({
     Key? key,
@@ -14,6 +15,7 @@ class ElevatedButtonWidget extends StatefulWidget {
     this.color,
     required this.onPressed,
     this.height,
+    this.isLoading = false, // Default tidak loading
   }) : super(key: key);
 
   @override
@@ -24,14 +26,15 @@ class _ElevatedButtonWidgetState extends State<ElevatedButtonWidget> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: widget.height ?? 48,
+      height: widget.height ?? 52,
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: widget.onPressed,
+        onPressed: widget.isLoading
+            ? null // Nonaktifkan saat loading
+            : widget.onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor:
-       widget.color ?? ColorStyle.primaryColor, // Warna tombol sesuai TextField
-
+              widget.color ?? ColorStyle.primaryColor, // Warna tombol sesuai TextField
           padding: EdgeInsets.symmetric(
               horizontal: 16, vertical: 12), // Padding dalam tombol
           shape: RoundedRectangleBorder(
@@ -39,12 +42,16 @@ class _ElevatedButtonWidgetState extends State<ElevatedButtonWidget> {
                 BorderRadius.circular(8), // Sudut membulat sesuai TextField
           ),
         ),
-        child: Text(
-          widget.text,
-          style: FontFamily.titleForm.copyWith(
-            color: ColorStyle.whiteColors, // Warna teks sesuai TextField
-          ),
-        ),
+        child: widget.isLoading
+            ? CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              )
+            : Text(
+                widget.text,
+                style: FontFamily.titleForm.copyWith(
+                  color: ColorStyle.whiteColors, // Warna teks sesuai TextField
+                ),
+              ),
       ),
     );
   }
