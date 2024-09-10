@@ -2,6 +2,7 @@ import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/home/bottom_screen.dart';
 import 'package:anugrah_lens/services/add_customer.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
+import 'package:anugrah_lens/services/flushbar_widget.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/Button_widget.dart';
@@ -75,9 +76,11 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
       });
     } catch (error) {
       // Handle error
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to fetch customers: $error'),
-      ));
+      showTopSnackBar(
+        context,
+        error.toString(),
+        backgroundColor: ColorStyle.errorColor,
+      );
     }
   }
 
@@ -159,39 +162,52 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                         name: 'Ukuran',
                       ),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        mainAxisAlignment: MainAxisAlignment
+                            .spaceEvenly, // Membuat jarak antar kolom sama
                         children: [
                           Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment
+                                .center, // Menjaga isi kolom tetap di tengah
+                            crossAxisAlignment: CrossAxisAlignment
+                                .center, // Agar teks berada di tengah kolom
                             children: [
                               Text(
                                 'Left',
-                                style: FontFamily.caption
-                                    .copyWith(color: ColorStyle.secondaryColor),
+                                textAlign: TextAlign
+                                    .center, // Mengatur teks agar rata tengah
+                                style: FontFamily.caption.copyWith(
+                                  color: ColorStyle.secondaryColor,
+                                ),
                               ),
                               const SizedBox(height: 4.0),
-                              //buat textfield yang baru dengan ukurna kecil
+                              // TextField dengan ukuran kecil
                               TextFieldWidget(
                                 controller: leftEyeController,
                                 hintText: 'e.g. 50',
-                                width: 100,
+                                width: 100, // Lebar dari TextField
                               ),
                             ],
                           ),
                           Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment
+                                .center, // Menjaga isi kolom tetap di tengah
+                            crossAxisAlignment: CrossAxisAlignment
+                                .center, // Agar teks berada di tengah kolom
                             children: [
                               Text(
                                 'Right',
-                                style: FontFamily.caption
-                                    .copyWith(color: ColorStyle.secondaryColor),
+                                textAlign: TextAlign
+                                    .center, // Mengatur teks agar rata tengah
+                                style: FontFamily.caption.copyWith(
+                                  color: ColorStyle.secondaryColor,
+                                ),
                               ),
                               const SizedBox(height: 4.0),
-                              //buat textfield yang baru dengan ukurna kecil
+                              // TextField dengan ukuran kecil
                               TextFieldWidget(
                                 controller: rightEyeController,
                                 hintText: 'e.g. 50',
-                                width: 100,
+                                width: 100, // Lebar dari TextField
                               ),
                             ],
                           )
@@ -386,15 +402,20 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                             );
 
                             // Show success message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  responseMessage,
-                                  style: FontFamily.caption
-                                      .copyWith(color: ColorStyle.whiteColors),
+                            showTopSnackBar(
+                              context,
+                              responseMessage,
+                            );
+
+                            /// navigate to home screen
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FirstScreen(
+                                  activeScreen: 0,
                                 ),
-                                backgroundColor: ColorStyle.successColor,
                               ),
+                              (route) => false,
                             );
 
                             /// navigate to home screen
@@ -409,15 +430,10 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                             );
                           } catch (e) {
                             // Show error message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Error: ${e.toString()}',
-                                  style: FontFamily.caption
-                                      .copyWith(color: ColorStyle.whiteColors),
-                                ),
-                                backgroundColor: ColorStyle.errorColor,
-                              ),
+                            showTopSnackBar(
+                              context,
+                              e.toString(),
+                              backgroundColor: ColorStyle.errorColor,
                             );
                           }
                         },
@@ -428,6 +444,32 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  void showTopSnackBar(
+    context,
+    String message, {
+    Duration? duration,
+    Color? backgroundColor,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        dismissDirection: DismissDirection.up,
+        duration: duration ?? const Duration(milliseconds: 1000),
+        backgroundColor: backgroundColor ?? ColorStyle.primaryColor,
+        margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height - 100,
+            left: 10,
+            right: 10),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          message,
+          style: FontFamily.caption.copyWith(
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 }

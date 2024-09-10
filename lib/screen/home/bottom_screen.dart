@@ -5,16 +5,15 @@ import 'package:flutter/material.dart';
 
 class FirstScreen extends StatefulWidget {
   final int? activeScreen;
-  const FirstScreen({Key? key, this.activeScreen})
-      : super(key: key);
+  const FirstScreen({Key? key, this.activeScreen}) : super(key: key);
 
   @override
-  State<FirstScreen> createState() =>
-      _FirstScreenState();
+  State<FirstScreen> createState() => _FirstScreenState();
 }
 
 class _FirstScreenState extends State<FirstScreen> {
   int _selectedNavbar = 0;
+  bool _isDrawerOpen = false;
   @override
   void initState() {
     super.initState();
@@ -32,7 +31,14 @@ class _FirstScreenState extends State<FirstScreen> {
 
   Widget screenBottomNavigation(int index) {
     if (index == 0) {
-      return BerandaPageScreen();
+      // Pass callback ke BerandaPageScreen
+      return BerandaPageScreen(
+        onDrawerChanged: (bool isOpen) {
+          setState(() {
+            _isDrawerOpen = isOpen; // Update status drawer
+          });
+        },
+      );
     } else {
       return RiwayatPageScreen();
     }
@@ -45,10 +51,12 @@ class _FirstScreenState extends State<FirstScreen> {
         duration: const Duration(milliseconds: 1000),
         child: screenBottomNavigation(_selectedNavbar),
       ),
-      bottomNavigationBar: BottomNavbarWidget(
-        currentIndex: _selectedNavbar,
-        onTap: _changeSelectedNavbar,
-      ),
+      bottomNavigationBar: _isDrawerOpen
+          ? null // Sembunyikan BottomNavigationBar jika drawer terbuka
+          : BottomNavbarWidget(
+              currentIndex: _selectedNavbar,
+              onTap: _changeSelectedNavbar,
+            ),
     );
   }
 }

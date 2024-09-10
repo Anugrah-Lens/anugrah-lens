@@ -7,11 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class CreateTableAngsuran extends StatefulWidget {
+  final String customerName;
   final String idCustomer;
   final String? glassId;
 
   const CreateTableAngsuran({
     super.key,
+    required this.customerName,
     required this.glassId,
     required this.idCustomer,
   });
@@ -66,7 +68,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
     DateTime paidDate = DateTime.parse(currentPaidDate);
     final TextEditingController paidDateController = TextEditingController(
         text: DateFormat('dd MMMM yyyy')
-            .format(paidDate)); // Format yang diinginkan
+            .format(paidDate.add(const Duration(hours: 7))));
 
     return showDialog<void>(
       context: context,
@@ -98,17 +100,18 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                     );
 
                     if (pickedDate != null) {
+                      /// tambah 7 jam ke waktu yang dipilih dnegan format dd MMM yyyy
                       String formattedDate =
                           DateFormat('dd MMMM yyyy').format(pickedDate);
-                      setState(() {
-                        paidDateController.text = formattedDate;
-                      });
+                      setState(
+                        () {
+                          paidDateController.text = formattedDate;
+                        },
+                      );
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Tanggal tidak dipilih'),
-                          backgroundColor: Colors.red,
-                        ),
+                      showTopSnackBar(
+                        context,
+                        'Tanggal tidak boleh kosong',
                       );
                     }
                   },
@@ -124,73 +127,69 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
               },
             ),
             TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                final newAmount = int.tryParse(amountController.text);
-                final newPaidDate = paidDateController.text;
+                child: const Text('Save'),
+                onPressed: () async {
+                  final newAmount = int.tryParse(amountController.text);
+                  final newPaidDate = paidDateController.text;
 
-                if (newAmount != null && newPaidDate.isNotEmpty) {
-                  try {
-                    // Tampilkan dialog loading
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (BuildContext context) {
-                        return const Center(child: CircularProgressIndicator());
-                      },
-                    );
+                  if (newAmount != null && newPaidDate.isNotEmpty) {
+                    try {
+                      // Tampilkan dialog loading
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        },
+                      );
 
-                    // Ambil tanggal dari paidDateController
-                    DateTime selectedDate = DateFormat('dd MMMM yyyy')
-                        .parse(paidDateController.text);
+                      // Ambil tanggal dari paidDateController
+                      DateTime selectedDate = DateFormat('dd MMMM yyyy')
+                          .parse(paidDateController.text);
 
-                    // Jika server membutuhkan format ISO, kirim dengan format ISO 8601
-                    String paidDate = selectedDate.toUtc().toIso8601String();
+                      // Jika server membutuhkan format ISO, kirim dengan format ISO 8601
+                      String paidDate = selectedDate.toUtc().toIso8601String();
 
-                    // Edit installment dan dapatkan pesan dari server
-                    String message = await _paymentService.editInstallment(
-                      installmentId,
-                      newAmount,
-                      paidDate, // Format tanggal yang dikirim ke server
-                    );
+                      // Edit installment dan dapatkan pesan dari server
+                      var result = await _paymentService.editInstallment(
+                        installmentId,
+                        newAmount,
+                        paidDate, // Format tanggal yang dikirim ke server
+                      );
 
-                    // Tutup loading dialog
-                    Navigator.of(context).pop();
+                      // Tutup loading dialog
+                      Navigator.of(context).pop();
 
-                    // Tampilkan SnackBar dengan pesan sukses
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(message),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                    setState(() {
-                      _fetchData();
-                    });
-                    Navigator.of(context).pop();
-                  } catch (e) {
-                    // Tutup loading dialog
-                    Navigator.of(context).pop();
+                      if (result['success']) {
+                        showTopSnackBar(
+                          context,
+                          result['message'] ??
+                              'Installment updated successfully',
+                        );
 
-                    // Tampilkan pesan error
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                        setState(() {
+                          _fetchData(); // Refresh data setelah pembayaran berhasil
+                        });
+                        Navigator.of(context).pop();
+                      } else {
+                        showTopSnackBar(
+                          context,
+                          result['message'] ?? 'Gagal mengedit data',
+                        );
+                        Navigator.of(context).pop();
+                      }
+                    } catch (e) {
+                      // Close loading dialog
+                      Navigator.of(context).pop();
+
+                      showTopSnackBar(
+                        context,
+                        'Error: $e',
+                      );
+                    }
                   }
-                } else {
-                  // Jika input tidak valid, tampilkan pesan error
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Amount dan tanggal tidak boleh kosong'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-            ),
+                })
           ],
         );
       },
@@ -256,27 +255,18 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
               onPressed: () async {
                 // Validasi input
                 if (tanggalController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Tanggal pembayaran tidak boleh kosong',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
+                  showTopSnackBar(
+                    context,
+                    'Tanggal tidak boleh kosong',
                   );
                   return;
                 }
 
                 if (bayarController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Nilai pembayaran tidak boleh kosong',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
+                 showTopSnackBar(
+                    context,
+                    'Nilai pembayaran tidak boleh kosong',
+                    
                   );
                   return;
                 }
@@ -285,14 +275,10 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                     int.tryParse(bayarController.text.replaceAll(',', '')) ?? 0;
 
                 if (bayar <= 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Nilai pembayaran harus lebih besar dari 0',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
+                 showTopSnackBar(
+                    context,
+                    'Nilai pembayaran tidak boleh kurang dari 0',
+                    backgroundColor: Colors.red,
                   );
                   return;
                 }
@@ -300,15 +286,12 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                 String? glassId = widget.glassId;
 
                 if (glassId == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'glassId is null',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
+                showTopSnackBar(
+                    context,
+                    'ID kacamata tidak ditemukan',
+                    backgroundColor: Colors.red,
                   );
+
                   return;
                 }
 
@@ -321,6 +304,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                       return const Center(child: CircularProgressIndicator());
                     },
                   );
+
                   // Ambil tanggal dari pickedDate
                   DateTime selectedDate =
                       DateFormat('dd MMMM yyyy').parse(tanggalController.text);
@@ -330,41 +314,35 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
                   var result = await _paymentService.addPaymentDataAmount(
                       bayar, glassId, paidDate);
 
-                  // close loading dialog
+                  // Close loading dialog
                   Navigator.of(context).pop();
 
                   if (result['success']) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content:
-                            Text(result['message'] ?? 'Pembayaran berhasil'),
-                        backgroundColor: Colors.green,
-                      ),
+                    showTopSnackBar(
+                      context,
+                      result['message'] ?? 'Installment added successfully',
                     );
                     setState(() {
-                      _fetchData();
+                      _fetchData(); // Refresh data setelah pembayaran berhasil
                     });
+                    Navigator.of(context).pop();
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(result['message'] ?? 'Pembayaran gagal'),
-                        backgroundColor: Colors.red,
-                      ),
+                    showTopSnackBar(
+                      context,
+                      result['message'] ?? 'Gagal menambahkan data',
+                      backgroundColor: Colors.red,
                     );
+                    Navigator.of(context).pop();
                   }
-
-                  // Tutup dialog setelah berhasil
-                  Navigator.of(context).pop();
                 } catch (e) {
-                  // close loading dialog
+                  // Close loading dialog
                   Navigator.of(context).pop();
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e')),
+                  showTopSnackBar(
+                    context,
+                    'Error: $e',
+                    backgroundColor: Colors.red,
                   );
-
-                  // close dialog
-                  Navigator.of(context).pop();
                 }
               },
             ),
@@ -381,7 +359,7 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Thiyara Al-Mawaddah',
+          widget.customerName,
           style: FontFamily.subtitle.copyWith(color: ColorStyle.secondaryColor),
         ),
       ),
@@ -635,6 +613,33 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
             return const SizedBox();
           }
         },
+      ),
+    );
+  }
+
+  void showTopSnackBar(
+    context,
+    String message, {
+    Duration? duration,
+    Color? backgroundColor,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        dismissDirection: DismissDirection.up,
+        duration: duration ?? const Duration(milliseconds: 1000),
+        backgroundColor: backgroundColor ?? ColorStyle.primaryColor,
+        margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height - 100,
+            left: 10,
+            right: 10),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          message,
+          style: FontFamily.caption.copyWith(
+            color: Colors.white,
+          ),
+          
+        ),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/widget/card.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class SelesaiScreen extends StatefulWidget {
   final String idCustomer;
@@ -29,6 +30,12 @@ class _SelesaiScreenState extends State<SelesaiScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String formatRupiah(int amount) {
+      final formatCurrency = NumberFormat.currency(
+          locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
+      return formatCurrency.format(amount);
+    }
+
     return FutureBuilder<CustomerData>(
       future: customersData,
       builder: (context, snapshot) {
@@ -82,7 +89,7 @@ class _SelesaiScreenState extends State<SelesaiScreen> {
                         'Metode pembayaran tidak tersedia',
                     address: customer.address ?? 'Alamat tidak tersedia',
                     sisaPembayaran:
-                        'Sisa Pembayaran: Rp. ${glass.price != null && glass.deposit != null ? glass.price! - glass.deposit! : 0}',
+                        'Sisa Pembayaran: ${glass.installments?.isNotEmpty == true ? formatRupiah(glass.installments?.last.remaining ?? 0) : '-'}',
                     frameName: glass.frame ?? 'Nama frame tidak tersedia',
                     glassesName: glass.lensType ?? 'Tipe lensa tidak tersedia',
                     decoration: BoxDecoration(

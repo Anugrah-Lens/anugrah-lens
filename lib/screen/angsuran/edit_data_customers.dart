@@ -4,6 +4,7 @@ import 'package:anugrah_lens/screen/home/home_page_screen.dart';
 import 'package:anugrah_lens/services/add_customer.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
 import 'package:anugrah_lens/services/edit_custumers.dart';
+import 'package:anugrah_lens/services/flushbar_widget.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/Button_widget.dart';
@@ -154,9 +155,11 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
             fetchedCustomers.customer ?? []; // Simpan daftar pelanggan di state
       });
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to fetch customers: $error'),
-      ));
+      showTopSnackBar(
+        context,
+        'Gagal mengambil data pelanggan: $error',
+        backgroundColor: ColorStyle.errorColor,
+      );
     }
   }
 
@@ -216,15 +219,13 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
         );
 
         // Show success message and pop back to the previous screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: ColorStyle.successColor,
-            content: Text('Data berhasil diperbarui!',
-                style: FontFamily.caption.copyWith(
-                  color: ColorStyle.whiteColors,
-                )),
-          ),
+        showTopSnackBar(
+          context,
+          'Data pelanggan berhasil diperbarui',
+          backgroundColor: ColorStyle.primaryColor,
         );
+        // Pindah ke halaman sebelumnya (FirstScree
+
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
@@ -234,14 +235,10 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
             ),
             (route) => false);
       } catch (error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: ColorStyle.errorColor,
-            content: Text(
-              'Gagal memperbarui data: $error',
-              style: FontFamily.caption.copyWith(color: ColorStyle.whiteColors),
-            ),
-          ),
+        showTopSnackBar(
+          context,
+          'Gagal memperbarui data pelanggan: $error',
+          backgroundColor: ColorStyle.errorColor,
         );
       }
     }
@@ -485,6 +482,32 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void showTopSnackBar(
+    context,
+    String message, {
+    Duration? duration,
+    Color? backgroundColor,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        dismissDirection: DismissDirection.up,
+        duration: duration ?? const Duration(milliseconds: 1000),
+        backgroundColor: backgroundColor ?? ColorStyle.primaryColor,
+        margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height - 100,
+            left: 10,
+            right: 10),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          message,
+          style: FontFamily.caption.copyWith(
+            color: Colors.white,
+          ),
         ),
       ),
     );

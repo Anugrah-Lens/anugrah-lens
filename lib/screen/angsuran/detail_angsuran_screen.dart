@@ -7,6 +7,7 @@ import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/Button_widget.dart';
 import 'package:anugrah_lens/widget/text_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class DetailAngsuranSCreen extends StatefulWidget {
   final String idCustomer;
@@ -42,6 +43,12 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
 
   @override
   Widget build(BuildContext context) {
+    String formatRupiah(int amount) {
+      final formatCurrency = NumberFormat.currency(
+          locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+      return formatCurrency.format(amount);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -200,25 +207,33 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                             Padding(
                               padding: EdgeInsets.all(2.0),
                               child: Text(
-                                selectedGlass.orderDate ?? 'Tidak tersedia',
+                                /// selected order date ubah ke format "dd MMMM yyyy"
+                                selectedGlass.orderDate != null
+                                    ? DateFormat('dd MMMM yyyy').format(
+                                        DateTime.parse(
+                                            selectedGlass.orderDate!))
+                                    : 'Tidak tersedia',
                                 style: FontFamily.caption,
                               ),
                             ),
-                            const SizedBox(height: 20.0),
                             const TitleTextWIdget(name: 'Tanggal Pengantaran'),
                             Padding(
                               padding: EdgeInsets.all(2.0),
                               child: Text(
-                                selectedGlass.deliveryDate ?? 'Tidak tersedia',
+                                /// selected order date ubah ke format "dd MMMM yyyy"
+                                selectedGlass.deliveryDate != null
+                                    ? DateFormat('dd MMMM yyyy').format(
+                                        DateTime.parse(
+                                            selectedGlass.deliveryDate!))
+                                    : 'Tidak tersedia',
                                 style: FontFamily.caption,
                               ),
                             ),
                             const TitleTextWIdget(name: 'Harga'),
                             Padding(
-                              padding: EdgeInsets.all(2.0),
+                              padding: const EdgeInsets.all(2.0),
                               child: Text(
-                                selectedGlass.price?.toString() ??
-                                    'Tidak tersedia',
+                                formatRupiah(selectedGlass.price ?? 0),
                                 style: FontFamily.caption,
                               ),
                             ),
@@ -226,17 +241,8 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                             Padding(
                               padding: EdgeInsets.all(2.0),
                               child: Text(
-                                selectedGlass.deposit?.toString() ??
-                                    'Tidak tersedia',
+                                formatRupiah(selectedGlass.deposit ?? 0),
                                 style: FontFamily.caption,
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.all(2.0),
-                              child: Text(
-                                'Sisa Pembayaran: ${selectedGlass.price! - selectedGlass.deposit!}',
-                                style: FontFamily.caption
-                                    .copyWith(color: ColorStyle.errorColor),
                               ),
                             ),
                           ],
@@ -260,7 +266,8 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                         padding: EdgeInsets.all(2.0),
                         child: Text(
                           'Metode Pembayaran',
-                          style: FontFamily.title.copyWith(fontSize: 16),
+                          style: FontFamily.title.copyWith(
+                              fontSize: 16, color: ColorStyle.primaryColor),
                         ),
                       ),
                       Padding(
@@ -288,6 +295,20 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 4.0),
+                      Padding(
+                        padding: EdgeInsets.all(2.0),
+                        child: Text(
+                          // ambil remaining dari installment terakhir yang ada di selectedGlass
+                          //  'Sisa Pembayaran : {${ formatRupiah(selectedGlass.installments?.isNotEmpty ==
+                          //           true
+                          //       ? selectedGlass.installments?.last.remaining ?? 0
+                          'Sisa Pembayaran : ${formatRupiah(selectedGlass.installments?.isNotEmpty == true ? selectedGlass.installments?.last.remaining ?? 0 : 0)}',
+
+                          style: FontFamily.caption
+                              .copyWith(color: ColorStyle.errorColor),
+                        ),
+                      ),
                       const SizedBox(height: 32.0),
                       ElevatedButtonWidget(
                         color: ColorStyle.primaryColor,
@@ -297,6 +318,7 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => CreateTableAngsuran(
+                                customerName: customer.name.toString(),
                                 idCustomer: widget.idCustomer,
                                 glassId: widget.idGlass,
                               ),

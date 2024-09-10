@@ -1,12 +1,10 @@
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/angsuran/menu_angsuran.dart';
-import 'package:anugrah_lens/screen/form-screen/create_new_angsuran.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
+import 'package:anugrah_lens/services/flushbar_widget.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/card.dart';
-import 'package:anugrah_lens/widget/floating_action_button_widget.dart';
-import 'package:anugrah_lens/widget/seacrh_bar_widget.dart';
 import 'package:anugrah_lens/widget/textfield_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -28,13 +26,9 @@ class _RiwayatPageScreenState extends State<RiwayatPageScreen> {
       backgroundColor: ColorStyle.whiteColors,
       appBar: AppBar(
         backgroundColor: ColorStyle.whiteColors,
-        title: Align(
-          alignment: Alignment.topRight,
-          child: Text(
-            'Hello, thiyara',
-            style:
-                FontFamily.titleForm.copyWith(color: ColorStyle.primaryColor),
-          ),
+        title: const Padding(
+          padding: EdgeInsets.all(2.0),
+          child: Text("Anugrah Lens", style: FontFamily.title),
         ),
       ),
       body: FutureBuilder<CustomersModel>(
@@ -56,10 +50,6 @@ class _RiwayatPageScreenState extends State<RiwayatPageScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.all(2.0),
-                  child: Text("Anugrah Lens", style: FontFamily.h3),
-                ),
                 const SizedBox(height: 10.0),
                 SearchDropdownFieldHome(
                   onSelected: (String selectedName) {
@@ -84,6 +74,7 @@ class _RiwayatPageScreenState extends State<RiwayatPageScreen> {
                   hintText: 'cari nama pelanggan',
                   items: customers.map((e) => e.name ?? '').toList(),
                 ),
+                         const SizedBox(height: 4.0),
                 Expanded(
                   child: ListView.builder(
                     itemCount: customers.length,
@@ -113,11 +104,10 @@ class _RiwayatPageScreenState extends State<RiwayatPageScreen> {
                                 ),
                               );
                             } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'No glass available for this customer'),
-                                ),
+                              showTopSnackBar(
+                                context,
+                                'Pelanggan ini belum memiliki kacamata',
+                                backgroundColor: ColorStyle.errorColor,
                               );
                             }
                           },
@@ -131,6 +121,32 @@ class _RiwayatPageScreenState extends State<RiwayatPageScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void showTopSnackBar(
+    context,
+    String message, {
+    Duration? duration,
+    Color? backgroundColor,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        dismissDirection: DismissDirection.up,
+        duration: duration ?? const Duration(milliseconds: 1000),
+        backgroundColor: backgroundColor ?? ColorStyle.primaryColor,
+        margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height - 100,
+            left: 10,
+            right: 10),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          message,
+          style: FontFamily.caption.copyWith(
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }

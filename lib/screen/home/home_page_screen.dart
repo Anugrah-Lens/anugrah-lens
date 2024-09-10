@@ -1,8 +1,11 @@
 import 'package:anugrah_lens/models/customers_model.dart';
 import 'package:anugrah_lens/screen/angsuran/menu_angsuran.dart';
 import 'package:anugrah_lens/screen/form-screen/create_new_angsuran.dart';
+import 'package:anugrah_lens/screen/home/bottom_screen.dart';
+import 'package:anugrah_lens/screen/home/history_page_screen.dart';
 import 'package:anugrah_lens/screen/login/login_screen.dart';
 import 'package:anugrah_lens/services/customer_services.dart';
+import 'package:anugrah_lens/services/flushbar_widget.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/card.dart';
@@ -14,7 +17,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BerandaPageScreen extends StatefulWidget {
-  BerandaPageScreen({Key? key}) : super(key: key);
+  final Function(bool)? onDrawerChanged; // Tambahkan callback
+  BerandaPageScreen({Key? key, this.onDrawerChanged}) : super(key: key);
 
   @override
   State<BerandaPageScreen> createState() => _BerandaPageScreenState();
@@ -28,6 +32,9 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
   String? _email;
   String? _name;
 
+  CustomersModel? _customersData; // Menyimpan data pelanggan
+  bool _isLoading = true; // Menyimpan state loading
+
   Future<void> _loadProfile() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -38,13 +45,75 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
     });
   }
 
+  Future<void> _fetchCustomers() async {
+    try {
+      final customersData = await _costumersService.fetchCustomers();
+      setState(() {
+        _customersData = customersData;
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        _customersData = null;
+        _isLoading = false;
+      });
+      showTopSnackBar(
+        context,
+        'Gagal memuat data pelanggan',
+        backgroundColor: ColorStyle.errorColor,
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    _fetchCustomers();
   }
 
   // preferensi pengguna
+
+  Future<void> _showSignOutDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible:
+          false, // Dialog tidak dapat ditutup dengan tap di luar
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Konfirmasi',
+              style: FontFamily.title.copyWith(color: ColorStyle.primaryColor)),
+          content: const SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Apakah Anda yakin ingin keluar dari aplikasi ini?',
+                    style: FontFamily.caption),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Batal',
+                  style: FontFamily.caption
+                      .copyWith(color: ColorStyle.primaryColor)),
+              onPressed: () {
+                Navigator.of(context).pop(); // Tutup dialog tanpa logout
+              },
+            ),
+            TextButton(
+              child: Text('Keluar',
+                  style: FontFamily.caption
+                      .copyWith(color: ColorStyle.errorColor)),
+              onPressed: () {
+                Navigator.of(context).pop(); // Tutup dialog
+                _handleSignOut(); // Panggil fungsi logout
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Future<void> _handleSignOut() async {
     try {
@@ -63,8 +132,10 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
       );
     } catch (error) {
       print('Sign out failed: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sign out failed: $error')),
+      showTopSnackBar(
+        context,
+        'Gagal keluar, silakan coba lagi',
+        backgroundColor: ColorStyle.errorColor,
       );
     }
   }
@@ -86,6 +157,7 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
         ),
       ),
       drawer: Drawer(
+        width: MediaQuery.of(context).size.width * 0.9,
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
@@ -110,13 +182,20 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                       Text(
                         _firstName.toString(),
                         style: FontFamily.titleForm.copyWith(
-                            color: ColorStyle.whiteColors,
-                            fontWeight: FontWeight.bold),
+                          color: ColorStyle.whiteColors,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      Text(
-                        _email.toString(),
-                        style: FontFamily.caption
-                            .copyWith(color: ColorStyle.whiteColors),
+                      const SizedBox(height: 8), // Space between name and email
+                      Flexible(
+                        child: Text(
+                          _email.toString(),
+                          style: FontFamily.caption
+                              .copyWith(color: ColorStyle.whiteColors),
+                          softWrap: true, // Allow text to wrap to the next line
+                          overflow: TextOverflow
+                              .visible, // Ensure text visibility without clipping
+                        ),
                       ),
                     ],
                   ),
@@ -129,7 +208,8 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                   style: FontFamily.caption
                       .copyWith(color: ColorStyle.primaryColor)),
               onTap: () {
-                _handleSignOut();
+                // Redirect to the Beranda screen
+                Navigator.pop(context);
               },
             ),
             ListTile(
@@ -139,8 +219,15 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                   style: FontFamily.caption
                       .copyWith(color: ColorStyle.primaryColor)),
               onTap: () {
-                Navigator.pop(context);
                 // Navigate to the Riwayat screen
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const FirstScreen(
+                            activeScreen: 1,
+                          )),
+                  (Route<dynamic> route) => false,
+                );
               },
             ),
             const SizedBox(
@@ -153,113 +240,166 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                   style: FontFamily.caption
                       .copyWith(color: ColorStyle.primaryColor)),
               onTap: () {
-                _handleSignOut();
+                // Tampilkan dialog konfirmasi sebelum logout
+                _showSignOutDialog();
               },
             ),
           ],
         ),
       ),
-      body: FutureBuilder<CustomersModel>(
-        future: _costumersService.fetchCustomers(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data?.customer == null) {
-            return const Center(child: Text('Tidak ada pelanggan'));
+      drawerEnableOpenDragGesture: true,
+      onDrawerChanged: (isOpen) {
+        setState(() {
+          if (widget.onDrawerChanged != null) {
+            widget.onDrawerChanged!(
+                isOpen); // Panggil callback untuk kirim status drawer
           }
-
-          // Mengambil daftar pelanggan
-          List<Customer> customers = snapshot.data!.customer!;
-
-          /// tampilkan daftar pelanggan yang paymenStatus = Unpaid
-          /// diambil dariu data customer.glasses.paymentStatus
-          customers = customers
-              .where((element) => element.glasses!
-                  .any((element) => element.paymentStatus == 'Unpaid'))
-              .toList();
-
-          return Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(2.0),
-                  child: Text("Anugrah Lens", style: FontFamily.h3),
-                ),
-                const SizedBox(height: 10.0),
-                SearchDropdownFieldHome(
-                  onSelected: (String selectedName) {
-                    // Memastikan navigasi hanya terjadi jika nama dipilih dari dropdown
-                    Customer? selectedCustomer = customers
-                        .firstWhere((element) => element.name == selectedName);
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MenuAngsuranScreen(
-                          idCustomer: selectedCustomer.id ?? '',
-                          customerName: selectedCustomer.name ?? '',
-                        ),
+        });
+      },
+      body: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {
+            _isLoading = true; // Show loading indicator while refreshing
+          });
+          await _fetchCustomers(); // Attempt to fetch new data
+          setState(() {
+            _isLoading = false; // Hide loading indicator after fetching
+          });
+        },
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : FutureBuilder<CustomersModel>(
+                future: _costumersService.fetchCustomers(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Gagal memuat data pelanggan',
+                            style: FontFamily.caption,
+                          ),
+                          const SizedBox(height: 20.0),
+                          ElevatedButton(
+                            onPressed: () async {
+                              setState(() {
+                                _isLoading =
+                                    true; // Show loading indicator when retrying
+                              });
+                              await _fetchCustomers(); // Retry fetching data
+                              setState(() {
+                                _isLoading =
+                                    false; // Hide loading indicator after retry
+                              });
+                            },
+                            child: const Text('Coba Lagi'),
+                          ),
+                        ],
                       ),
                     );
-                  },
-                  prefixIcons: const Icon(Icons.search,
-                      color: Color.fromARGB(255, 53, 35, 35)),
-                  suffixIcons: null,
-                  controller: name,
-                  hintText: 'cari nama pelanggan',
-                  items: customers.map((e) => e.name ?? '').toList(),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: customers.length,
-                    itemBuilder: (context, index) {
-                      final customer = customers[index];
+                  }
 
-                      // Select the first glass if it exists
-                      Glass? selectedGlass =
-                          customer.glasses?.isNotEmpty == true
-                              ? customer.glasses!.first
-                              : null;
+                  // Ensure data is loaded
+                  if (!snapshot.hasData || snapshot.data!.customer == null) {
+                    return const Center(
+                      child: Text(
+                        'Tidak ada data pelanggan tersedia',
+                        style: FontFamily.caption,
+                      ),
+                    );
+                  }
 
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: CardNameWidget(
-                          onPressed: () {
-                            if (selectedGlass != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MenuAngsuranScreen(
-                                    idCustomer: customer.id ?? '',
-                                    customerName: customer.name ?? '',
+                  // Mengambil daftar pelanggan
+                  List<Customer> customers = snapshot.data!.customer!;
 
-                                    // Pass the selected glass ID
-                                  ),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'No glass available for this customer'),
-                                ),
-                              );
-                            }
-                          },
-                          name: customer.name ?? 'Nama tidak tersedia',
+                  // Filter pelanggan dengan paymentStatus 'Unpaid'
+                  customers = customers
+                      .where((element) => element.glasses!
+                          .any((glass) => glass.paymentStatus == 'Unpaid'))
+                      .toList();
+
+                  return Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.all(2.0),
+                          child: Text("Anugrah Lens", style: FontFamily.h3),
                         ),
-                      );
-                    },
-                  ),
-                )
-              ],
-            ),
-          );
-        },
+                        const SizedBox(height: 10.0),
+                        SearchDropdownFieldHome(
+                          onSelected: (String selectedName) {
+                            // Memastikan navigasi hanya terjadi jika nama dipilih dari dropdown
+                            Customer? selectedCustomer = customers.firstWhere(
+                                (element) => element.name == selectedName);
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MenuAngsuranScreen(
+                                  idCustomer: selectedCustomer.id ?? '',
+                                  customerName: selectedCustomer.name ?? '',
+                                ),
+                              ),
+                            );
+                          },
+                          prefixIcons: const Icon(Icons.search,
+                              color: Color.fromARGB(255, 53, 35, 35)),
+                          suffixIcons: null,
+                          controller: name,
+                          hintText: 'cari nama pelanggan',
+                          items: customers.map((e) => e.name ?? '').toList(),
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: customers.length,
+                            itemBuilder: (context, index) {
+                              final customer = customers[index];
+
+                              // Select the first glass if it exists
+                              Glass? selectedGlass =
+                                  customer.glasses?.isNotEmpty == true
+                                      ? customer.glasses!.first
+                                      : null;
+
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: CardNameWidget(
+                                  onPressed: () {
+                                    if (selectedGlass != null) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              MenuAngsuranScreen(
+                                            idCustomer: customer.id ?? '',
+                                            customerName: customer.name ?? '',
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      showTopSnackBar(
+                                        context,
+                                        'Pelanggan belum memiliki kacamata',
+                                        backgroundColor: ColorStyle.errorColor,
+                                      );
+                                    }
+                                  },
+                                  name: customer.name ?? 'Nama tidak tersedia',
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
       ),
       floatingActionButton: CustomFloatingActionButton(
         onPressed: () {
@@ -272,6 +412,32 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
         icon: Icons.add,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  void showTopSnackBar(
+    context,
+    String message, {
+    Duration? duration,
+    Color? backgroundColor,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        dismissDirection: DismissDirection.up,
+        duration: duration ?? const Duration(milliseconds: 1000),
+        backgroundColor: backgroundColor ?? ColorStyle.primaryColor,
+        margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height - 100,
+            left: 10,
+            right: 10),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          message,
+          style: FontFamily.caption.copyWith(
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 }

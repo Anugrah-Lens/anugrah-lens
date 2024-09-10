@@ -1,12 +1,7 @@
 import 'package:anugrah_lens/firebase_options.dart';
-import 'package:anugrah_lens/screen/angsuran/detail_angsuran_screen.dart';
-import 'package:anugrah_lens/screen/angsuran/menu_angsuran.dart';
-import 'package:anugrah_lens/screen/angsuran/table_angsuran.dart';
-import 'package:anugrah_lens/screen/form-screen/create_new_angsuran.dart';
+import 'package:anugrah_lens/preferences/preferences_helper.dart';
 import 'package:anugrah_lens/screen/home/bottom_screen.dart';
 import 'package:anugrah_lens/screen/login/login_screen.dart';
-import 'package:anugrah_lens/screen/test.dart';
-import 'package:anugrah_lens/screen/testr.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -15,16 +10,30 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(MyApp());
+
+  await UserPreferences.init();
+
+  final isLoggedIn = UserPreferences.isLoggedIn();
+
+  runApp(MyApp(
+    isLoggedIn: isLoggedIn,
+  ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+  const MyApp({
+    super.key,
+    required this.isLoggedIn,
+  });
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    Widget homeScreen =
+        isLoggedIn ? const FirstScreen(activeScreen: 0) : LoginScreen();
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(
           useMaterial3: true,
@@ -33,6 +42,6 @@ class MyApp extends StatelessWidget {
             brightness: Brightness.light, // Mengatur tampilan terang
           ),
         ),
-        home: LoginScreen());
+        home: homeScreen);
   }
 }

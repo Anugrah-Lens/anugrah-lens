@@ -23,8 +23,6 @@ class PaymentService {
       if (response.statusCode == 200) {
         return {
           'success': true,
-          'total': response.data['installment']['total'],
-          'remaining': response.data['installment']['remaining'],
           'message': response.data['message'], // Pesan sukses dari server
         };
       } else if (response.statusCode == 400) {
@@ -46,28 +44,43 @@ class PaymentService {
     }
   }
 
-  Future<String> editInstallment(
+  Future<Map<String, dynamic>> editInstallment(
       String installmentId, int amount, String paidDate) async {
     try {
-      final response =
-          await _dio.put('$baseUrl/edit-installment/$installmentId', data: {
-        'amount': amount,
-        'paidDate': paidDate,
-      });
+      final response = await _dio.put(
+        '$baseUrl/edit-installment/$installmentId',
+        data: {
+          'amount': amount,
+          'paidDate': paidDate,
+        },
+        options: Options(
+          validateStatus: (status) {
+            return status! < 500;
+          },
+        ),
+      );
 
       if (response.statusCode == 200) {
-        print('Installment updated successfully');
-        return response.data['message'] ??
-            'Installment updated successfully'; // Ambil pesan dari response
+        return {
+          'success': true,
+          'message': response.data['message'] ??
+              'Installment updated successfully', // Pesan sukses dari server
+        };
+      } else if (response.statusCode == 400) {
+        // Jika status code 400, berarti ada kesalahan input (bad request)
+        return {
+          'success': false,
+          'message': response.data['message'] ?? 'Bad request',
+        };
       } else {
-        print(
-            'Failed to update installment. Status code: ${response.statusCode}');
-        throw Exception(
-            'Failed to update installment: ${response.data['message']}'); // Ambil pesan dari response
+        throw Exception('Failed to update installment: ${response.statusCode}');
       }
+    } on DioException catch (e) {
+      print('Dio error: $e');
+      throw Exception('Failed to update installment: ${e.message}');
     } catch (e) {
-      print('Error during installment update: $e');
-      throw Exception('Error during installment update: $e');
+      print('General error: $e');
+      throw Exception('Failed to update installment');
     }
   }
 

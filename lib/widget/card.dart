@@ -70,7 +70,7 @@ class _CardAnsuranWidgetState extends State<CardAnsuranWidget> {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Container(
-          height: 180,
+          //height mengikuti besar konten
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),

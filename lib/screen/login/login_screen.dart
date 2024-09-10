@@ -1,4 +1,5 @@
 import 'package:anugrah_lens/screen/home/bottom_screen.dart';
+import 'package:anugrah_lens/services/flushbar_widget.dart';
 import 'package:anugrah_lens/style/color_style.dart';
 import 'package:anugrah_lens/style/font_style.dart';
 import 'package:anugrah_lens/widget/Button_widget.dart';
@@ -41,10 +42,11 @@ Future<UserCredential?> signInWithGoogle() async {
     await prefs.setString('name', userCredential.user?.displayName ?? '');
     await prefs.setString('email', userCredential.user?.email ?? '');
     await prefs.setString('photoUrl', userCredential.user?.photoURL ?? '');
-    await prefs.setString('token', userCredential.user?.refreshToken ?? '');
+    await prefs.setString('token', userCredential.user?.uid ?? '');
 
     // print semua
     print(userCredential.user?.displayName);
+    print(' refresh token : ${userCredential.user?.uid}');
 
     return userCredential;
   } catch (e) {
@@ -54,6 +56,15 @@ Future<UserCredential?> signInWithGoogle() async {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  TextEditingController codeController = TextEditingController();
+  bool obscureText = true;
+
+  @override
+  void initState() {
+    super.initState();
+    obscureText = true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Padding(
                     padding: EdgeInsets.all(2.0),
-                    child: Text('Anugrah Lensa', style: FontFamily.h2),
+                    child: Text('Anugrah Lens', style: FontFamily.h2),
                   ),
                   const Padding(
                     padding: EdgeInsets.all(8.0),
@@ -95,34 +106,147 @@ class _LoginScreenState extends State<LoginScreen> {
                       signInWithGoogle().then((value) {
                         if (value != null) {
                           print("Login berhasil, user: ${value.user?.email}");
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const FirstScreen(activeScreen: 0),
-                            ),
+
+                          // Tampilkan dialog untuk memasukkan kode admin
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(
+                                  'Masukkan Kode Admin',
+                                  style: FontFamily.title.copyWith(
+                                    color: ColorStyle.primaryColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                content: StatefulBuilder(
+                                  builder: (BuildContext context,
+                                      StateSetter setState) {
+                                    return TextField(
+                                      controller: codeController,
+                                      obscureText:
+                                          obscureText, // Tampilkan karakter atau tidak
+                                      decoration: InputDecoration(
+                                        suffixIcon: IconButton(
+                                          icon: Icon(
+                                            obscureText
+                                                ? Icons.visibility_off
+                                                : Icons.visibility,
+                                            color: ColorStyle.primaryColor,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              obscureText =
+                                                  !obscureText; // Toggle obscureText
+                                            });
+                                          },
+                                        ),
+                                        hintText: 'Kode Admin',
+                                        hintStyle:
+                                            FontFamily.titleForm.copyWith(
+                                          fontWeight: FontWeight.w300,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                actions: [
+                                  TextButton(
+                                    child: Text(
+                                      'Batal',
+                                      style: FontFamily.titleForm.copyWith(
+                                        color: ColorStyle.primaryColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  TextButton(
+                                    child: Text(
+                                      'OK',
+                                      style: FontFamily.caption.copyWith(
+                                        color: ColorStyle.primaryColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      // Cek apakah kode yang dimasukkan sesuai
+                                      if (codeController.text == 'Anugrah112') {
+                                        Navigator.of(context)
+                                            .pop(); // Tutup dialog
+                                        // Arahkan ke halaman pertama jika kode benar
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const FirstScreen(
+                                                    activeScreen: 0),
+                                          ),
+                                        );
+                                      } else {
+                                        // Tampilkan pesan kesalahan jika kode salah
+                                        showTopSnackBar(
+                                          context,
+                                          'Kode admin salah, silakan coba lagi',
+                                          backgroundColor:
+                                              ColorStyle.errorColor,
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
                           );
                         } else {
                           print("Login gagal");
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content:
-                                    Text('Login gagal, silakan coba lagi.')),
+                          showTopSnackBar(
+                            context,
+                            'Login gagal, silakan coba lagi',
+                            backgroundColor: ColorStyle.errorColor,
                           );
                         }
                       }).catchError((error) {
                         print("Terjadi error selama login: $error");
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                  'Terjadi kesalahan selama login: $error')),
+                        showTopSnackBar(
+                          context,
+                          'Terjadi error selama login, silakan coba lagi',
+                          backgroundColor: ColorStyle.errorColor,
                         );
                       });
                     },
-                  )
+                  ),
                 ],
               ),
             )),
+      ),
+    );
+  }
+
+  void showTopSnackBar(
+    context,
+    String message, {
+    Duration? duration,
+    Color? backgroundColor,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        dismissDirection: DismissDirection.up,
+        duration: duration ?? const Duration(milliseconds: 1000),
+        backgroundColor: backgroundColor ?? ColorStyle.primaryColor,
+        margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height - 100,
+            left: 10,
+            right: 10),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          message,
+          style: FontFamily.caption.copyWith(
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }
