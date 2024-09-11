@@ -192,57 +192,59 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                       const TitleTextWIdget(
                         name: 'Ukuran',
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment
-                            .spaceEvenly, // Membuat jarak antar kolom sama
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment
-                                .center, // Menjaga isi kolom tetap di tengah
-                            crossAxisAlignment: CrossAxisAlignment
-                                .center, // Agar teks berada di tengah kolom
-                            children: [
-                              Text(
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Text(
                                 'Right',
-                                textAlign: TextAlign
-                                    .center, // Mengatur teks agar rata tengah
-                                style: FontFamily.caption.copyWith(
+                                style: FontFamily.titleForm.copyWith(
                                   color: ColorStyle.secondaryColor,
                                 ),
                               ),
-                              const SizedBox(height: 4.0),
-                              // TextField dengan ukuran kecil
-                              TextFieldWidget(
+                            ),
+                            const SizedBox(height: 6.0),
+                            // TextField dengan ukuran kecil
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 8.0, right: 8.0),
+                              child: TextFieldWidget(
                                 controller: rightEyeController,
                                 hintText: 'e.g. 50',
-                                width: 100, // Lebar dari TextField
                               ),
-                            ],
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment
-                                .center, // Menjaga isi kolom tetap di tengah
-                            crossAxisAlignment: CrossAxisAlignment
-                                .center, // Agar teks berada di tengah kolom
-                            children: [
-                              Text(
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Text(
                                 'Left',
-                                textAlign: TextAlign
-                                    .center, // Mengatur teks agar rata tengah
-                                style: FontFamily.caption.copyWith(
+                                style: FontFamily.titleForm.copyWith(
                                   color: ColorStyle.secondaryColor,
                                 ),
                               ),
-                              const SizedBox(height: 4.0),
-                              // TextField dengan ukuran kecil
-                              TextFieldWidget(
+                            ),
+                            const SizedBox(height: 6.0),
+                            // TextField dengan ukuran kecil
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 8.0, right: 8.0),
+                              child: TextFieldWidget(
                                 controller: leftEyeController,
                                 hintText: 'e.g. 50',
-                                width: 100, // Lebar dari TextField
                               ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 32.0),
                       const TitleTextWIdget(
@@ -264,9 +266,8 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                       ),
                       SizedBox(height: 8),
                       Text("Sisa pembayaran: ${formatRupiah(remainingPayment)}",
-                          style: FontFamily.titleForm.copyWith(
-                            color: ColorStyle.errorColor
-                          )),
+                          style: FontFamily.titleForm
+                              .copyWith(color: ColorStyle.errorColor)),
                       const SizedBox(height: 32.0),
                       const TitleTextWIdget(
                         name: 'Tanggal Pesanan',
@@ -333,10 +334,7 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                               throw Exception(
                                   "Nama pelanggan tidak boleh kosong.");
                             }
-                            if (phoneController.text.isEmpty) {
-                              throw Exception(
-                                  "Nomor telepon tidak boleh kosong.");
-                            }
+
                             if (addressController.text.isEmpty) {
                               throw Exception("Alamat tidak boleh kosong.");
                             }
@@ -434,9 +432,7 @@ class _CreateNewAngsuranScreenState extends State<CreateNewAngsuranScreen> {
                               deliveryDate: formattedDeliveryDate,
                               paymentMethod: paymentMethod,
                             );
-
                             showTopSnackBar(context, responseMessage);
-
                             // Navigate to home screen
                             Navigator.pushAndRemoveUntil(
                               context,

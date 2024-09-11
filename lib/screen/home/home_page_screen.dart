@@ -25,7 +25,9 @@ class BerandaPageScreen extends StatefulWidget {
 
 class _BerandaPageScreenState extends State<BerandaPageScreen> {
   final CostumersService _costumersService = CostumersService();
+  // panggil delete customer service
   final TextEditingController name = TextEditingController();
+
   String? _photoUrl;
   String? _firstName;
   String? _email;
@@ -392,28 +394,103 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
 
                               return Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
-                                child: CardNameWidget(
-                                  onPressed: () {
-                                    if (selectedGlass != null) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              MenuAngsuranScreen(
-                                            idCustomer: customer.id ?? '',
-                                            customerName: customer.name ?? '',
-                                          ),
-                                        ),
-                                      );
+                                child: Dismissible(
+                                  key: ValueKey(customer.id ??
+                                      index), // Ensure unique key
+                                  direction: DismissDirection.endToStart,
+                                  background: Container(
+                                    color: Colors.red,
+                                    alignment: Alignment.centerRight,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20.0),
+                                    child: const Icon(Icons.delete,
+                                        color: Colors.white),
+                                  ),
+                                  onDismissed: (direction) async {
+                                    final response = await _costumersService
+                                        .deleteCustomer(customer.id ?? '');
+
+                                    // Menentukan warna berdasarkan status respon
+                                    Color snackBarColor;
+                                    String message;
+
+                                    if (response['error'] == true) {
+                                      // Jika error
+                                      snackBarColor = ColorStyle
+                                          .errorColor; // Merah untuk error
+                                      message = response['message'] ??
+                                          'Customer not found or failed to delete.';
+
+                                      // Kembalikan item yang dihapus ke dalam list
+                                      setState(() {
+                                        unpaidCustomers.insert(index, customer);
+                                      });
                                     } else {
-                                      showTopSnackBar(
-                                        context,
-                                        'Pelanggan belum memiliki kacamata',
-                                        backgroundColor: ColorStyle.errorColor,
-                                      );
+                                      snackBarColor = Colors
+                                          .green; // Hijau untuk keberhasilan
+                                      message =
+                                          'Customer ${customer.name} has been successfully deleted.';
                                     }
+
+                                    // Tampilkan SnackBar dengan warna yang sesuai menggunakan showTopSnackBar
+                                    showTopSnackBar(
+                                      context,
+                                      message,
+                                      backgroundColor: snackBarColor,
+                                      duration: const Duration(seconds: 3),
+                                    );
                                   },
-                                  name: customer.name ?? 'Nama tidak tersedia',
+                                  confirmDismiss: (direction) async {
+                                    return await showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: const Text("Konfirmasi"),
+                                          content: const Text(
+                                              "Apakah Anda yakin ingin menghapus pelanggan ini?"),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(context)
+                                                      .pop(false),
+                                              child: const Text("Batal"),
+                                            ),
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(context)
+                                                      .pop(true),
+                                              child: const Text("Hapus"),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: CardNameWidget(
+                                    onPressed: () {
+                                      if (selectedGlass != null) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                MenuAngsuranScreen(
+                                              idCustomer: customer.id ?? '',
+                                              customerName: customer.name ?? '',
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        showTopSnackBar(
+                                          context,
+                                          'Pelanggan belum memiliki kacamata',
+                                          backgroundColor:
+                                              ColorStyle.errorColor,
+                                        );
+                                      }
+                                    },
+                                    name:
+                                        customer.name ?? 'Nama tidak tersedia',
+                                  ),
                                 ),
                               );
                             },
@@ -455,9 +532,11 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
         duration: duration ?? const Duration(milliseconds: 1000),
         backgroundColor: backgroundColor ?? ColorStyle.primaryColor,
         margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height - 100,
+            bottom: MediaQuery.of(context).size.height - 120,
             left: 10,
-            right: 10),
+            right: 10,
+            top: 10
+            ),
         behavior: SnackBarBehavior.floating,
         content: Text(
           message,

@@ -24,4 +24,36 @@ class CostumersService {
       throw Exception("Failed to fetch Communities: $error");
     }
   }
+
+  // Fungsi untuk delete customer berdasarkan id
+  Future<Map<String, dynamic>> deleteCustomer(String customerId) async {
+    try {
+      final response = await _dio.delete('$baseUrl/delete-customer/$customerId');
+
+      if (response.statusCode == 200) {
+        return {
+          'error': false,
+          'message': 'Customer deleted successfully',
+        };
+      } else {
+        return {
+          'error': true,
+          'message': 'Failed to delete customer: ${response.statusMessage}',
+        };
+      }
+    } on DioException catch (dioError) {
+      print(dioError);
+      // Dio specific error handling
+      return {
+        'error': true,
+        'message': 'Error deleting customer: ${dioError.message}',
+      };
+    } catch (e) {
+      // General error handling
+      return {
+        'error': true,
+        'message': 'Unexpected error deleting customer: $e',
+      };
+    }
+  }
 }

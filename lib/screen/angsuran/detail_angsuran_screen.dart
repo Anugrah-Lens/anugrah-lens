@@ -163,9 +163,11 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                           ),
                           const TitleTextWIdget(name: 'No Telepon'),
                           Padding(
-                            padding: EdgeInsets.all(2.0),
+                            padding: const EdgeInsets.all(2.0),
                             child: Text(
-                              customer.phone.toString(),
+                              customer.phone?.isNotEmpty == true
+                                  ? customer.phone!
+                                  : "-", // Jika phone ada, tampilkan, jika tidak, tampilkan "-"
                               style: FontFamily.caption,
                             ),
                           ),
@@ -276,7 +278,11 @@ class _DetailAngsuranSCreenState extends State<DetailAngsuranSCreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              selectedGlass!.paymentMethod ?? 'Tidak tersedia',
+                              // buat apabila paymentMethodnya = Installment maka namanya "Angsuran" jika tidak "Cash" tetap "Cash"
+                              selectedGlass.paymentMethod == 'Installments'
+                                  ? 'Angsuran'
+                                  : 'Cash',
+
                               style: FontFamily.titleForm.copyWith(
                                 color: ColorStyle.textColors,
                               ),

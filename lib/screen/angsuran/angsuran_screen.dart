@@ -88,8 +88,7 @@ class _AngsuranScreenState extends State<AngsuranScreen> {
                         ),
                       );
                     },
-                    label: glass.paymentMethod ??
-                        'Metode pembayaran tidak tersedia',
+                    label: 'Angusuran',
                     address: customer.address ?? 'Alamat tidak tersedia',
                     sisaPembayaran:
                         'Sisa Pembayaran: ${glass.installments?.isNotEmpty == true ? formatRupiah(glass.installments?.last.remaining ?? 0) : '-'}',

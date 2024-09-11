@@ -292,11 +292,7 @@ class _EditDataCustomersScreenState extends State<EditDataCustomersScreen> {
                   ),
                   const SizedBox(height: 4.0),
                   TextFormFieldWidget(
-                    color: ColorStyle.disableColor,
-                    textColor: ColorStyle.disableColor,
                     controller: nameController,
-                    readOnly:
-                        true, // Menonaktifkan input agar tidak bisa diedit
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Nama tidak boleh kosong';

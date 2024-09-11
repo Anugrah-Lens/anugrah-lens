@@ -109,7 +109,7 @@ class _CardAnsuranWidgetState extends State<CardAnsuranWidget> {
                       .copyWith(color: ColorStyle.primaryColor, fontSize: 16),
                 ),
                 Padding(
-                  padding: EdgeInsets.all(2.0),
+                  padding: const EdgeInsets.all(2.0),
                   child: Text(widget.frameName, style: FontFamily.caption),
                 ),
                 Padding(

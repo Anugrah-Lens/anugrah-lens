@@ -635,9 +635,11 @@ class _CreateTableAngsuranState extends State<CreateTableAngsuran> {
         duration: duration ?? const Duration(milliseconds: 1000),
         backgroundColor: backgroundColor ?? ColorStyle.primaryColor,
         margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height - 100,
+            bottom: MediaQuery.of(context).size.height - 120,
             left: 10,
-            right: 10),
+            right: 10,
+            top: 10
+            ),
         behavior: SnackBarBehavior.floating,
         content: Text(
           message,
