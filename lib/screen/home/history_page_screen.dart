@@ -27,13 +27,11 @@ class _RiwayatPageScreenState extends State<RiwayatPageScreen> {
         backgroundColor: ColorStyle.whiteColors,
         title: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Expanded(
-            child: SizedBox(
-              height: 20, // You can adjust the height as needed
-              child: Image.asset(
-                'assets/images/AnugrahLensLogo.png',
-                fit: BoxFit.contain, // Ensures the image scales properly
-              ),
+          child: SizedBox(
+            height: 20, // You can adjust the height as needed
+            child: Image.asset(
+              'assets/images/AnugrahLensLogo.png',
+              fit: BoxFit.contain, // Ensures the image scales properly
             ),
           ),
         ),

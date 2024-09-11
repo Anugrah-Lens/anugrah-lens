@@ -141,7 +141,6 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       backgroundColor: ColorStyle.whiteColors,
       appBar: AppBar(
@@ -373,7 +372,7 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                         Padding(
                           padding:
                               const EdgeInsets.only(top: 16.0, bottom: 8.0),
-                          child: Text('Pelanggan yang belum Selesai',
+                          child: Text('Pelanggan yang belum membayar',
                               style: FontFamily.title.copyWith(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 16,
@@ -426,15 +425,19 @@ class _BerandaPageScreenState extends State<BerandaPageScreen> {
                 },
               ),
       ),
-      floatingActionButton: CustomFloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CreateNewAngsuranScreen(),
-              ));
-        },
-        icon: Icons.add,
+      floatingActionButton: SizedBox(
+        height: 72,
+        width: 72,
+        child: CustomFloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CreateNewAngsuranScreen(),
+                ));
+          },
+          icon: Icons.add,
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );

@@ -133,8 +133,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                       StateSetter setState) {
                                     return TextField(
                                       controller: codeController,
+                                      keyboardType: TextInputType
+                                          .number, // Membuka keyboard angka
                                       obscureText:
-                                          obscureText, // Tampilkan karakter atau tidak
+                                          obscureText, // Menyembunyikan karakter
                                       decoration: InputDecoration(
                                         suffixIcon: IconButton(
                                           icon: Icon(
@@ -146,11 +148,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                           onPressed: () {
                                             setState(() {
                                               obscureText =
-                                                  !obscureText; // Toggle obscureText
+                                                  !obscureText; // Toggle visibility PIN
                                             });
                                           },
                                         ),
-                                        hintText: 'Kode Admin',
+                                        hintText: 'Masukkan PIN',
                                         hintStyle:
                                             FontFamily.titleForm.copyWith(
                                           fontWeight: FontWeight.w300,
@@ -185,7 +187,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      if (codeController.text == 'Anugrah112') {
+                                      if (codeController.text == '040102') {
+                                        // Ganti dengan kode PIN yang sesuai
                                         Navigator.of(context)
                                             .pop(); // Tutup dialog
                                         Navigator.pushReplacement(
@@ -203,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       } else {
                                         showTopSnackBar(
                                           context,
-                                          'Kode admin salah, silakan coba lagi',
+                                          'Kode PIN salah, silakan coba lagi',
                                           backgroundColor:
                                               ColorStyle.errorColor,
                                         );
