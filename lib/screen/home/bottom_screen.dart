@@ -48,7 +48,7 @@ class _FirstScreenState extends State<FirstScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 1000),
+        duration: const Duration(milliseconds: 3000),
         child: screenBottomNavigation(_selectedNavbar),
       ),
       bottomNavigationBar: _isDrawerOpen

@@ -146,7 +146,7 @@ class _RiwayatPageScreenState extends State<RiwayatPageScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         dismissDirection: DismissDirection.up,
-        duration: duration ?? const Duration(milliseconds: 1000),
+        duration: duration ?? const Duration(milliseconds: 3000),
         backgroundColor: backgroundColor ?? ColorStyle.primaryColor,
         margin: EdgeInsets.only(
             bottom: MediaQuery.of(context).size.height - 100,
